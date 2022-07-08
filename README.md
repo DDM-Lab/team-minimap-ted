@@ -11,7 +11,7 @@ This is a 2D browser-based implementation of a team task Search and Rescue missi
 - RED victims disappear after 2 minutes
 
 ## Features:
-This version is featured with collective intelligence-based metrics, called TED (Team Effective Diagnostic). The metrics are computed in real time and reported after a predefined interval. 
+This version is featured with collective intelligence-based metrics, called TED (Team Effectiveness Diagnostics). The metrics are computed in real time and reported after a predefined interval. 
 
 ## Requirements:
 - To run locally:
