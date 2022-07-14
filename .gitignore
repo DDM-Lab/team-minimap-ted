@@ -19,4 +19,3 @@ build/
 *.pickle
 *.zip
 *.log
-data/
