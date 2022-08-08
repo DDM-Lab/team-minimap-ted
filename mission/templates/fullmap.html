@@ -18,6 +18,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script> -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery-sparkline@2.4.0/jquery.sparkline.min.js"></script>
+    <style>
+
+        svg + svg {
+          margin-left: 20px;
+        }
+
+        .sparkline {
+          fill: none;
+        }
+
+        .sparkline--red {
+          stroke: #dc2b33;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.13/d3.min.js" integrity="sha512-+fimYMd9ssJlAt7SKeLD8bemPKamAAomwky9niJe6clQ5CD3xDVHvdNbgfr7NSJAQdhZxpTs0t68H4urqYbQog==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/epoch/0.8.4/js/epoch.min.js" integrity="sha512-OQUukBdyDPDSyD0Bul5eNAdMKjOu1xTrK7oCnNnrdtHAx7BqH93ZXpwLMu91YICvfW3Sl/asx5xrVW1Jw38BPw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/epoch/0.8.4/css/epoch.min.css" integrity="sha512-vg5Y7XDOfPBY8A7drxCyYMoBGxqL/5cvxfBuUgqcfvz6y8q7/rLT+LpxVxbljx33aNZwH4BbiQIO8zgtvCCkUQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     <script src="{{ url_for('static', path='js/p5.min.js')}}"></script>
     <script src="{{ url_for('static', path='js/p5.dom.min.js')}}"></script>
     <script src="{{ url_for('static', path='js/p5.sound.min.js')}}"></script>
@@ -93,11 +113,30 @@
                             <label for="map"> Show map</label>
                         </span>
                     </h3>
-                    <h3>
-                        <span id="effort"> Effort: 0</span> |
-                        <span id="skill">Skill: 0</span> |
-                        <span id="efficiency">Efficiency: 0</span> 
-                    </h3>
+
+                    <div style="display: flex;align-items: center;justify-content: space-around;">
+                        <div>
+                            <div id="gaugeChartEffort" class="epoch gauge-tiny"></div>
+                            <span>Effort</span>
+                            <div id="liveChartEffort">
+{#                                <svg class="liveChartEffort sparkline sparkline--red" width="100" height="30" stroke-width="3"></svg>#}
+                            </div>
+                        </div>
+                        <div>
+                            <div id="gaugeChartSkill" class="epoch gauge-tiny"></div>
+                            <span>Skill</span>
+                        </div>
+                        <div>
+                            <div id="gaugeChartEfficiency" class="epoch gauge-tiny"></div>
+                            <span>Efficiency</span>
+                        </div>
+                    </div>
+{#                    <div id="areaChart" style="width: 800px; height: 200px"></div>#}
+{#                    <h3>#}
+{#                        <span id="effort"> Effort: 0</span> |#}
+{#                        <span id="skill">Skill: 0</span> |#}
+{#                        <span id="efficiency">Efficiency: 0</span>#}
+{#                    </h3>#}
                     <h3><span id="result"></span></h3>
                     <form name="frm">
                         <input type="hidden" id="uid" name="uid" value={{data}} />

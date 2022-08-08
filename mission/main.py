@@ -15,6 +15,8 @@ models.Base.metadata.create_all(bind=ENGINE)
 
 import csv
 from fastapi_socketio import SocketManager
+from engineio.payload import Payload
+Payload.max_decode_packets = 100
 sio = SocketManager(app=app)
 
 import os
@@ -49,7 +51,7 @@ with open(CONF_PATH, 'r') as f:
 def get_group_id():
     res = 0
     with ENGINE.connect() as con:
-        query_str = "SELECT DISTINCT `game`.group FROM `game` ORDER BY CONVERT(`game`.group,INT) DESC LIMIT 1"
+        query_str = "SELECT DISTINCT `game`.group FROM `game` ORDER BY CAST(`game`.group as SIGNED) DESC LIMIT 1"
         rs = con.execute(query_str)
         for row in rs:
             print ('Current group id: ', row['group'])
