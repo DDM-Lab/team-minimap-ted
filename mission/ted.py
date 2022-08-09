@@ -1,13 +1,16 @@
-# Commented out IPython magic to ensure Python compatibility.
 import sys
 import json
 import math
 import os
 import ast
+from tokenize import group
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import json
+
+
 import os
 
 def initialize_state(config):
@@ -55,19 +58,19 @@ def initialize_state(config):
         'cur_scores': None,
     }
 
-    yellow = pd.read_csv('mission/static/data/yellow.csv')
+    yellow = get_csv(config.extra_info['map'],'yellow')
     config.extra_info['yellow_pos']=set(zip(yellow.x, yellow.z))
 
-    red = pd.read_csv('mission/static/data/red.csv')
+    red = get_csv(config.extra_info['map'],'red')
     config.extra_info['red_pos']=set(zip(red.x, red.z))
 
-    green = pd.read_csv('mission/static/data/green.csv')
+    green = get_csv(config.extra_info['map'],'green')
     config.extra_info['green_pos']=set(zip(green.x, green.z))
 
-    rubble_df = pd.read_csv('mission/static/data/rubble_pos.csv')
+    rubble_df = get_csv(config.extra_info['map'],'rubble')
     config.extra_info['rubble_pos']=set(zip(rubble_df.x, rubble_df.z))
 
-    doors_df = pd.read_csv('mission/static/data/doors.csv')
+    doors_df = get_csv(config.extra_info['map'],'door')
     config.extra_info['door_pos']=set(zip(doors_df.x, doors_df.z))
     #config.extra_info['red_pos'].update(config.extra_info['yellow_pos'])
 
@@ -95,6 +98,9 @@ def mission_stop( config):
     df.to_csv(msg_filename, index=False)
 
 def check_red_position(red,player_id):
+    """
+    Checks if theres is another player next to the red victim
+    """
     adj_tiles = [(-1,0),(1,0),(0,1),(0,-1)]
     red_pos=set()
     for i in adj_tiles:
@@ -104,10 +110,10 @@ def check_red_position(red,player_id):
         if curr in red_pos and player['id']!= player_id:
             return True
     return False 
-
 def check_tiles(data,player_data,type):
-    '''Note: Checking if the rubble or victims around the player'''
-
+    """
+    Checks if there is a victim, rubble or dooor in an adjacent tile
+    """
     x=data['x']
     y=data['y']
 
@@ -116,20 +122,20 @@ def check_tiles(data,player_data,type):
 
     for i in adj_tiles:
 
-        
         if (x+i[0],y+i[1]) in config.extra_info[type]:
-            if type == 'red_pos' and not check_red_position((x+i[0],y+i[1]), player_data['id']):
-                return False
 
-            if (x+i[0],y+i[1]) ==(32,31):
-                fas=32
-
-
+            # if type == 'red_pos' and not check_red_position((x+i[0],y+i[1]), player_data['id']):
+            #     return False
+            # if (x+i[0],y+i[1]) ==(32,31):
+            #     fas=32
             return True
 
     return False
 
 def remove_tile(data,player_data,type):
+    """
+    Removes victims/door/rubble when triage is completed
+    """
     x=data['x']
     y=data['y']
 
@@ -142,7 +148,10 @@ def remove_tile(data,player_data,type):
             return
 
 def check_duration(player_data,data):
-    '''Note: Checking if the itme is over the threshod of 5 seconds. E.g., they can start triage but not saving it.'''
+    """
+    Checks if skill has been going on for too long and if so it assumes it was a mistake a stops it. 
+    E.g. Player starts triaging but leaves without finsihing
+    """
     skills= ['dig_rubble','triage_green','triage_red','triage_yellow']
     for skill in skills:
 
@@ -151,44 +160,44 @@ def check_duration(player_data,data):
         if player_data[start_time_key] == None:
             continue
         dur=data['timestamp']-player_data[start_time_key]
-        if dur > 5:
+        if dur > config.extra_info['skill_s_threshold']:
             player_data[start_time_key] = None
     return
 
 def process_event(data,player,config):
+  """
+  Handles all messages from server
+  """
 
   player_data = ensure_player_data(player, config)
   player_data['curr_timestamp']=data['timestamp']
+
 
   player_data['event']=data['event']
   player_data['cur_role']=data['role']
 
   elapsed_s = data['timestamp']
 
-
-  if elapsed_s>=1655837538.16063 and player_data['id']=='A5P12YJP805RG':
-      sfa=2
-  check_duration(player_data,data)
+  check_duration(player_data,data) #Checks duration of current skill, resets skill variables if greater than threshold
 
 
   if data['event'] == 'door' :
-    #door is just one second of skill (currently same skill as removing rubble)
-    #record_skill_duration(data,'dig_rubble',player_data)
+    #door is 0.2s of skill (currently same skill as removing rubble)
     player_data['skill_end'] = elapsed_s
-    if not check_tiles(data,player_data,'door_pos'):
+    if not check_tiles(data,player_data,'door_pos'): #Checks if there is a door in an adjacent tile
         return
-    remove_tile(data,player_data,'door_pos')
-    player_data['effort']+=1
-    player_data['dig_rubble_duration_s']+=0.2
+    remove_tile(data,player_data,'door_pos')#Removes corresponding door
+    player_data['effort']+=config.extra_info['door_effort'] #Increases effort and engineer skill
+    player_data['dig_rubble_duration_s']+=config.extra_info['door_effort']
 
   elif data['event'] == 'rubble' :
-    if (elapsed_s-player_data['skill_end'])<1:
+    if (elapsed_s-player_data['skill_end'])<1:#Checks if more than one second passed from previous skill
         return
     record_skill_duration(data,'dig_rubble',player_data)
     remove_tile(data,player_data,'rubble_pos')
 
     player_data['skill_end'] = elapsed_s
-    player_data['effort']+=5
+    player_data['effort']+=config.extra_info['rubble_effort']
 
   elif data['event'] == 'triage green in-progress' :
     if (elapsed_s-player_data['skill_end'])<1:
@@ -230,12 +239,12 @@ def process_event(data,player,config):
     remove_tile(data,player_data,'green_pos')
 
     player_data['skill_end'] = elapsed_s
-    player_data['effort']+=10
+    player_data['effort']+=config.extra_info['green_effort']
 
   elif data['event'] == 'yellow' :
     if (elapsed_s-player_data['skill_end'])<1:
         return
-    player_data['effort']+=20
+    player_data['effort']+=config.extra_info['yellow_effort']
 
     player_data['triage_yellow_success_count']+=1
     record_skill_duration(data, "triage_yellow", player_data)
@@ -245,7 +254,7 @@ def process_event(data,player,config):
   elif data['event'] == 'red' :
     if (elapsed_s-player_data['skill_end'])<1:
         return
-    player_data['effort']+=20
+    player_data['effort']+=config.extra_info['red_effort']
 
     player_data['triage_red_success_count']+=1
     record_skill_duration(data, "triage_red", player_data)
@@ -265,8 +274,7 @@ def record_skill_start(data, skill, player_data):
     """
     start_time_key = f'{skill}_start_time'
     elapsed_s = data['timestamp']
-    max_wait = 5
-    skills = ['rubble', 'triage']
+
 
 
     # If we are not already doing the thing, mark the time was started doing the
@@ -312,7 +320,6 @@ def record_skill_duration(data, skill, player_data):
 def record_location(data,player, config):
     """
     Here we accumulate the exploration information.
-    Note: Check if it's a new exploration; check FoV that if they explored or not. 
     """
     # We are not accumulating player-specific information here. But let's at
     # least make sure we have a data entry for them.
@@ -371,25 +378,6 @@ def update_player_movement(data, player_data, _config):
     """
 
 
-    # We were checking for movement to see if the player has stopped breaking
-    # rubble. However, some players move while breaking rubble. So now we just
-    # check to see if enough time has elapsed and if so we stop the rubble
-    # breaking.
-    '''
-    if player_data['dig_rubble_start_time'] is not None:
-        rubble_duration = elapsed_ms - player_data['dig_rubble_start_time']
-        if rubble_duration > 1000:
-            # print('Canceling rubble digging due to elapsed time.')
-            record_skill_duration(data, 'dig_rubble', player_data)
-
-    # If the player is exploring and has moved to a new block, stop the timer.
-    # If they are exploring a new block, we'll set the timer again in the
-    # calling function.
-    and \
-        (data['x'] != player_data['last_x'] or
-         data['y'] != player_data['last_y']):
-    '''
-
     elapsed_s = data['timestamp']
 
     if player_data['explore_start_time'] is not None and \
@@ -397,7 +385,11 @@ def update_player_movement(data, player_data, _config):
          data['y'] != player_data['last_y']):
         record_skill_duration(data, 'explore', player_data)
 
+
+
+
     # Compute the movement distance and speed.
+    dt=0
     move_speed = None
     if player_data['last_x'] is not None:
         dx = abs(data['x'] - player_data['last_x'])
@@ -412,7 +404,21 @@ def update_player_movement(data, player_data, _config):
         player_data['effort']+=move_dist
         if player_data['speedup_start_time']:
             player_data['effort']+=move_dist
-        player_data['move_duration_s']+=move_dist*0.2
+        player_data['move_duration_s']+=move_dist*config.extra_info['movement_duration']
+
+    # Calculate time next red victim
+    x=data['x']
+    y=data['y']
+
+    adj_tiles = [(1,0),(-1,0),(0,-1),(0,1)]
+
+
+    for i in adj_tiles:
+        if (x+i[0],y+i[1]) in config.extra_info['red_pos']:
+            player_data['inaction_red_duration_s']+=dt
+            break
+
+
 
     # Update the position values for next step.
     player_data['last_x'] = data['x']
@@ -444,7 +450,7 @@ def publish_ac_result(data, config):
     #plot_coverage(config)
 
     #config.logger.info(f' - data = {msg_data}')
-    # print('Call from publish_ac_result:', msg_data)
+    #print(msg_data)
     
 
 def prepare_ac_msg_data(data, config):
@@ -544,13 +550,14 @@ def compute_skills(data,msg_data, config):
     global check_dict
     """
     Computes the skill action/inaction values and adds them to the msg_data.
+    msg_data is the team level message/file, indv_msg the player level file
     """
     elapsed_s = msg_data['elapsed_s']
 
     # Initialize the values to 0, we will add to them below.
-    msg_data['effort'] = 0
+    msg_data['Effort'] = 0
     msg_data['move'] = 0
-    msg_data['skill'] = 0
+    msg_data['Skill'] = 0
 
     msg_data['action_green_triage_s'] = 0
     msg_data['action_yellow_triage_s'] = 0
@@ -561,20 +568,19 @@ def compute_skills(data,msg_data, config):
     msg_data['triage_count_yellow']=0
     msg_data['triage_count_red']=0
 
-
+    msg_data['Workload'] = 0
     msg_data['action_speedup_s'] = 0
 
     # Update skill-related values.
-    ############ Need to reset start time to this timestamp
 
     for player_data in config.state['players'].values():
         indv_msg = {}
+
+        #Flags used when players are performing a skill when the metrisc are reported
         flag = 0
         flag_triage_green = 0
         flag_triage_red = 0
         flag_triage_yellow = 0
-
-
         flag_rubble = 0
 
         if player_data['speedup_start_time']:
@@ -593,15 +599,15 @@ def compute_skills(data,msg_data, config):
             flag_rubble=1
 
 
-        indv_msg['effort']=player_data['effort']
-        msg_data['effort']+=player_data['effort']
+        indv_msg['Effort']=player_data['effort']/config.extra_info['max_tiles']
+        msg_data['Effort']+=indv_msg['Effort']
 
         record_skill_duration(data,'dig_rubble',player_data)
         record_skill_duration(data,'triage_green',player_data)
         record_skill_duration(data,'triage_red',player_data)
         record_skill_duration(data,'triage_yellow',player_data)
 
-
+        #Record start if player was performing skill
         record_skill_duration(data,'speedup',player_data)
         if flag == 1:
             record_skill_start(data,'speedup',player_data)
@@ -647,22 +653,24 @@ def compute_skills(data,msg_data, config):
         indv_msg['exploration'] = player_data['explore_success_count']
 
         if player_data['cur_role']=='medic':
-            indv_msg['skill_s']=player_data['triage_yellow_duration_s']+player_data['triage_red_duration_s']
-            indv_msg['skill_s']=indv_msg['skill_s']/(player_data['triage_green_duration_s']+player_data['move_duration_s']+indv_msg['skill_s']+0.00001)
+            indv_msg['Skill']=player_data['triage_yellow_duration_s']+player_data['triage_red_duration_s']
+            indv_msg['Skill']=indv_msg['Skill']/(player_data['triage_green_duration_s']+player_data['move_duration_s']+indv_msg['Skill']+0.00001)
+            indv_msg['Workload']=(player_data['triage_red_success_count']+player_data['triage_yellow_success_count'])/config.extra_info['max_victims']
         else:
-            indv_msg['skill_s']=player_data['dig_rubble_duration_s']
-            indv_msg['skill_s']=indv_msg['skill_s']/(player_data['triage_green_duration_s']+player_data['move_duration_s']+indv_msg['skill_s']+0.0001)
-        
-        msg_data['skill']+=indv_msg['skill_s']
+            indv_msg['Skill']=player_data['dig_rubble_duration_s']
+            indv_msg['Skill']=indv_msg['Skill']/(player_data['triage_green_duration_s']+player_data['move_duration_s']+indv_msg['Skill']+0.0001)
+            indv_msg['Workload']= (player_data['dig_rubble_duration_s']+player_data['inaction_red_duration_s'])/10
+
+        msg_data['Skill']+=indv_msg['Skill']
 
 
-        indv_msg['workload']=(player_data['triage_green_success_count']/2+\
-        player_data['triage_red_success_count']/2+player_data['triage_yellow_success_count']/2+\
-             player_data['explore_success_count']/100)*0.5
+        # indv_msg['Workload']+= player_data['explore_success_count']/config.extra_info['max_tiles']
+        # indv_msg['Workload']*=0.5
+        indv_msg['Workload'] = indv_msg['Workload']*0.6 + (player_data['explore_success_count']/config.extra_info['max_tiles'])*0.4
+        print(player_data['inaction_red_duration_s'])
 
+        msg_data['Workload']+=indv_msg['Workload']
 
-
-        indv_msg['skill_s']=player_data['triage_green_duration_s']+player_data['dig_rubble_duration_s']+player_data['speedup_duration_s']
 
 
 
@@ -689,7 +697,7 @@ def compute_skills(data,msg_data, config):
 
     # Reset bookkeeping.
     reset_player_field('effort', config)
-    for skill in ('triage', 'speedup','dig_rubble', 'move_victim', 'explore','triage_red' ,'triage_yellow', 'triage_green','move' ):
+    for skill in ('triage', 'speedup','dig_rubble', 'move_victim', 'explore','triage_red' ,'triage_yellow', 'triage_green','move','inaction_red' ):
         reset_player_field(f'{skill}_duration_s', config)
         reset_player_field(f'{skill}_success_count', config)
 
@@ -726,47 +734,19 @@ def compute_process_values(msg_data, config):
     config.state['players_deltas'].append(players_delta_s)
 
     
-    msg_data['process_skill_use_s'] = msg_data['skill']/4
-    config.state['skill_uses'].append(msg_data['skill']/4)
+    msg_data['Skill'] = msg_data['Skill']/num_players
+    config.state['skill_uses'].append(msg_data['Skill']/num_players)
 
-    # Effort is the flip of inaction.
-    msg_data['process_effort_s'] =  msg_data['effort']/400
-    config.state['efforts'].append(msg_data['process_effort_s'])
+    msg_data['Effort'] =  msg_data['Effort']/num_players
+    config.state['efforts'].append(msg_data['Effort'])
 
-    '''
-    msg_data['process_skill_use_rel'] = 0
-    if msg_data['process_effort_s']:
-        msg_data['process_skill_use_rel'] = \
-            msg_data['process_skill_use_s'] / msg_data['process_effort_s']'''
 
-    # Workload burnt is average of exploration and triage.
-    msg_data['triage_workload'] = (msg_data['triage_count_red'] / 8)+\
-        (msg_data['triage_count_yellow'] /8) +\
-        (msg_data['triage_count_green'] / 8)
-    msg_data['process_workload_burnt'] = \
-        msg_data['process_coverage'] /400+ \
-        msg_data['triage_workload']
-    msg_data['process_workload_burnt'] *= 0.5
-    config.state['workloads'].append(msg_data['process_workload_burnt'])
 
-    # Now compute the aggregate values. These reflect the full history and are
-    # normalized so that they should be between 0 and 1.
-    #
-    # The skill use and effort seconds are summed across all players. So we
-    # divide by the number of player seconds as part of computing the agg value.
-    #
-    '''
-    total_players_s = num_players * config.extra_info['total_mission_s']
-    if total_players_s:
-        msg_data['process_skill_use_agg'] = \
-            sum(config.state['skill_uses']) / total_players_s
-        msg_data['process_effort_agg'] = \
-            sum(config.state['efforts']) / total_players_s
-        msg_data['process_workload_burnt_agg'] = sum(config.state['workloads'])
-    else:
-        msg_data['process_skill_use_agg'] = 0.0
-        msg_data['process_effort_agg'] = 0.0
-        msg_data['process_workload_burnt_agg'] = 0.0'''
+    msg_data['Workload'] =  msg_data['Workload']/num_players
+
+    config.state['workloads'].append(msg_data['Workload'])
+
+
 
 def round_scores(msg_data):
     """
@@ -872,6 +852,9 @@ def ensure_player_data(player, config):
             'explore_duration_s': 0,
             'explore_success_count': 0,
 
+            # Time next to red victim 
+            'inaction_red_duration_s':0,
+
 
             #Time moving
             'move_duration_s': 0,
@@ -932,69 +915,30 @@ def main(message,config):
     
 
 
-
+def get_csv(map,key):
+    file = map.loc[map['key']==key]
+    return file
 
 class configuration:
   state={}
-  extra_info={'period_s':5,
+  extra_info={'period_s':10,
               'total_coverage_area':3369,
               'total_triage_green':20,
               'total_triage_red':20,
               'total_triage_yellow':20,
-              'green_pos' : set(),
+              'max_tiles':100, #Max tiles that can be covered in 10s
+              'max_victims':2, #victims saved per 10s asssuming every victim is saved during the trial
+              'green_pos' : set(), #position (x,y) of victims
               'yellow_pos' : set(),
               'red_pos' : set(),
               'rubble_pos' : set(),
-              'doors_pos':set(),
-
-            #   'map':pd.read_csv('map.csv')}
-              'map':pd.read_csv('mission/static/data/map.csv')}
+              'door_pos':set(),
+              'skill_s_threshold':5, #Threshold time to reset edge cases e.g. player starts saving victim but does complete the triage
+              'door_effort':1, #number of keystrokes to open door
+              'rubble_effort':5, # number of keystrokes to destroy rubble
+              'green_effort':10,
+              'yellow_effort':20,
+              'red_effort':20,
+              'movement_duration':0.2,
+              'map':pd.read_csv('mission/static/data/map_new.csv')}
 config = configuration()
-
-
-# directory = '/Users/josecordova/Documents/cmu/TED'
-
-
-
-
-# for name in os.listdir(directory):
-
-#     if not name.endswith(".json") : 
-#         continue
-
-#     #name='data_group_0_episode_1.json'
-#     f = open(name)
-
-#     data=json.load(f)
-
-#     initialize_state(config)
-#     mission_start(config)
-
-#     check_file= []
-#     for line in data:
-#         check_file=main(ast.literal_eval(line),config,check_file)
-
-#     # Closing file
-#     f.close()
-
-#     df_check = pd.DataFrame.from_records(check_file)
-
-#     df = pd.DataFrame.from_records(config.state['msg_data'])
-#     df_check.to_csv('check/'+name+'.csv', index=False)
-
-
-#     curr_path= 'output/'+name[:-5]
-#     try:
-#         os.mkdir(curr_path)
-#     except:
-#         pass
-#     msg_filename = 'output/'+name[:-5]+'_global.csv'
-#     df_ted=df[['process_effort_s','process_workload_burnt','process_skill_use_s','triage_workload','elapsed_s','triage_count_red','triage_count_yellow','triage_count_green']]
-#     df_ted.to_csv(msg_filename, index=False)
-
-
-
-#     for player in config.state['players']:
-#         df = pd.DataFrame.from_records(config.state['players'][player]['msg'])
-#         filename = curr_path+'/'+config.state['players'][player]['cur_role'][0:3]+player+'_'+'.csv'
-#         df.to_csv(filename,index=False)

@@ -392,15 +392,15 @@ function initializeTEDGraph(){
     tedChart = {gaugeChartEffort : null,gaugeChartSkill : null, gaugeChartEfficiency: null};
     tedChart.gaugeChartEffort = $('#gaugeChartEffort').epoch({
         type: 'time.gauge',
-        value: 1
+        value: 0
       });
     tedChart.gaugeChartSkill = $('#gaugeChartSkill').epoch({
         type: 'time.gauge',
-        value: 1
+        value: 0
       });
     tedChart.gaugeChartEfficiency = $('#gaugeChartEfficiency').epoch({
         type: 'time.gauge',
-        value: 1
+        value: 0
       });
 
     /*
@@ -421,9 +421,6 @@ function initializeTEDGraph(){
     type: 'line'});
 
     });
-
-
-
 
 }
 function getHistoricData(){
@@ -465,9 +462,9 @@ function getTED() {
       document.getElementById('efficiency').innerHTML = 'Efficiency: ' + parseFloat(msg['ted_players'][pos_element]['process_workload_burnt']).toFixed(2);
       */
       var nowTime = Date.now();
-      tedChart.gaugeChartEffort.push(parseFloat(msg['ted_players'][pos_element]['process_effort_s']));
-      tedChart.gaugeChartSkill.push( parseFloat(msg['ted_players'][pos_element]['process_skill_use_s']));
-      tedChart.gaugeChartEfficiency.push(parseFloat(msg['ted_players'][pos_element]['process_workload_burnt']));
+      tedChart.gaugeChartEffort.push(parseFloat(msg['ted_players'][pos_element]['Effort']));
+      tedChart.gaugeChartSkill.push( parseFloat(msg['ted_players'][pos_element]['Skill']));
+      tedChart.gaugeChartEfficiency.push(parseFloat(msg['ted_players'][pos_element]['Workload']));
 
       /*
       tedChart.lineChart.push(
@@ -491,8 +488,8 @@ function getTED() {
 
        */
       console.log("Lengh history effort: "  + effortHis.length);
-      console.log("new value:" +msg['ted_players'][pos_element]['process_effort_s'] * 100);
-      tedChart.historyEff.push(msg['ted_players'][pos_element]['process_effort_s'] * 100)
+      console.log("new value:" +msg['ted_players'][pos_element]['Effort'] * 100);
+      tedChart.historyEff.push(msg['ted_players'][pos_element]['Effort'] * 100)
       $("#liveChartEffort").sparkline(tedChart.historyEff, { type: 'line'});
 
     } else {
