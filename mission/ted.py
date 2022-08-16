@@ -667,7 +667,7 @@ def compute_skills(data,msg_data, config):
         # indv_msg['Workload']+= player_data['explore_success_count']/config.extra_info['max_tiles']
         # indv_msg['Workload']*=0.5
         indv_msg['Workload'] = indv_msg['Workload']*0.6 + (player_data['explore_success_count']/config.extra_info['max_tiles'])*0.4
-        print(player_data['inaction_red_duration_s'])
+        # print(player_data['inaction_red_duration_s'])
 
         msg_data['Workload']+=indv_msg['Workload']
 

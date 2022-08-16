@@ -69,12 +69,19 @@ var isFirst = true;
 var intervalRecordData;
 var intervalEmitSocket;
 
+let socketIOBuffer = [];
+let effortHis = [], skillHis = [], efficiencyHis = [];
+var tedChart = null;
+
 // waiting room
 var lobbyWaitTime = 10 * 60 * 1000; //wait 10 minutes
 window.intervalID = -1;
 window.ellipses = -1
 window.lobbyTimeout = -1;
 
+// window.onload = function () {
+//   showFullView(chkFull);
+// };
 
 function showElement(ElementId) {
   document.getElementById(ElementId).style.display = 'block';
@@ -101,12 +108,54 @@ function showFullView(chkFull) {
   }
 }
 
+function sendFailedSocketEmits(){
+  if(socketIOBuffer.length>0){
+    for(let i=0;i<socketIOBuffer.length; i++){
+      emmitSocketIO(socketIOBuffer[i].endpoint, socketIOBuffer[i].value);
+    }
+  }
+}
+
+const withTimeout = (onSuccess, onTimeout, timeout) => {
+  let called = false;
+
+  const timer = setTimeout(() => {
+    if (called) return;
+    called = true;
+    onTimeout();
+  }, timeout);
+
+  return (...args) => {
+    if (called) return;
+    called = true;
+    clearTimeout(timer);
+    onSuccess.apply(this, args);
+  }
+}
+
+function emmitSocketIO(endpoint, value){
+  try {
+    if (socket) {
+        socket.emit(endpoint, value, withTimeout(
+            () => {},
+            () => {
+              socketIOBuffer.push({endpoint: endpoint,value: value})
+             }, 1000));
+    } else {
+      socketIOBuffer.push({endpoint: endpoint,value: value})
+    }
+  }catch (e){
+    socketIOBuffer.push({endpoint: endpoint,value: value})
+  }
+}
+
 socket.on("disconnect", (reason) => {
   sleep(5000).then(() => {
-        if (socket.disconnected) {
-          alert('The connection is not stable.');
-        }
+    if (socket.disconnected) {
+      alert('The connection is not stable.');
+    }
   });
+
   socket.emit('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': '' })
   if (reason === "io server disconnect") {
     console.log('Io server disconnect')
@@ -122,6 +171,7 @@ socket.on("connect_error", () => {
 
 socket.on("connect", () => {
   console.log("Is connected: ", socket.connected);
+  sendFailedSocketEmits();
 });
 
 
@@ -147,13 +197,12 @@ socket.on('waiting', function (data) {
   $('#tab-panel').hide();
   $('#tabgame').hide();
   $('#lobby').show();
-
   $('#status').text(data['status'] + " / " + data['max_size']);
   if (parseInt(data['status']) != 0) {
     if (window.intervalID === -1) {
       // Occassionally ping server to try and join
       window.intervalID = setInterval(function () {
-        socket.emit('join', { "pid": playerId, "uid": uid });
+        emmitSocketIO('join', { "pid": playerId, "uid": uid });
       }, 1000);
     }
   }
@@ -174,7 +223,7 @@ socket.on('waiting', function (data) {
     }, 500);
     // Timeout to leave lobby if no-one is found
     window.lobbyTimeout = setTimeout(function () {
-      socket.emit('leave', {});
+      emmitSocketIO('leave', {});
     }, lobbyWaitTime)
   }
 
@@ -205,10 +254,9 @@ socket.on('start game', function (msg) {
   async function getMap() {
     const response = await fetch('/map');
     const data = await response.json();
-
     width = (parseInt(data["max_x"]) + 1) * w + 1;
     height = (parseInt(data["max_y"]) + 1) * w + 1;
-    var canvas = createCanvas(width, height); 
+    var canvas = createCanvas(width, height); //
     canvas.parent('sketch-holder');
     cols = floor(width / w);
     rows = floor(height / w);
@@ -234,17 +282,21 @@ socket.on('start game', function (msg) {
       objVal = value;
       otherX.push(Object.values(objVal)[0]);
       otherY.push(Object.values(objVal)[1]);
+
+      
+
       roles.push(Object.values(objVal)[2]);
       if (key == playerId) {
         roleName = Object.values(objVal)[2];
+        // console.log("What is your role: ", roleName);
 
-        socket.emit('update', { "pid": playerId, "x": Object.values(objVal)[0], "y": Object.values(objVal)[1], 'mission_time': display.textContent, 'event': '' })
+        emmitSocketIO('update', { "pid": playerId, "x": Object.values(objVal)[0], "y": Object.values(objVal)[1], 'mission_time': display.textContent, 'event': '' })
 
         groupID = parseInt(roomid);
         const isMyIndex = (myIndex) => myIndex == playerId;
         
         // document.getElementById('pid').innerHTML = 'Player id: ' + (players.findIndex(isMyIndex) + 1).toString() + ' | User id: ' + uid.toString();
-        // document.getElementById('other_pid').innerHTML = 'Your role: ' + roleName.toString() + ' | Group: ' + (groupID + 1).toString();
+        // document.getElementById('other_pid').innerHTML = ' | Your role: ' + roleName.toString() + ' | Group: ' + (groupID + 1).toString();
         if (groupID !== undefined && isFirst) {
           var initData = {
             "userid": uid, "group": groupID, "role": roleName, "episode": episode, "target": "", "target_pos": "",
@@ -258,6 +310,7 @@ socket.on('start game', function (msg) {
     getListPlayers();
 
   });
+
 
   startTimer(totalMinutes, display);
   setTimeout(gameOver, totalMinutes * 1000);
@@ -277,7 +330,7 @@ socket.on('start game', function (msg) {
   }, (minuteRedDie * 60 + secondRedDie) * 1000);
 
   intervalRecordData = setInterval(function () {
-    if (!isGameOver){
+    if (!isGameOver) {
       var data = {
         "userid": uid, "group": groupID, "role": roleName, "episode": episode, "target": "", "target_pos": "",
         "num_step": targetSteps, "time_spent": display.textContent, "trajectory": traces.join(";")
@@ -287,62 +340,174 @@ socket.on('start game', function (msg) {
       })()
       targetSteps = 0;
       traces = [];
-    }else{
-      
+    } else {
       clearInterval(intervalRecordData);
     }
   }, 30 * 1000);
   intervalEmitSocket = setInterval(function () {
-    if (!isGameOver){
-      socket.emit('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': '' })
+    if (!isGameOver) {
+      emmitSocketIO('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': '' })
     }
-    else{
-      
+    else {
       clearInterval(intervalEmitSocket);
     }
   }, 1000);
 
   if (!isGameOver) {
-    // setInterval(getListPlayers, 1000);
-    setInterval(getListPlayers, 300); 
+    
+    setInterval(getListPlayers, 100); 
+    // setInterval(getTED, 10000); //call TED every 10s: 10000
   }
 }); //end socket on 'start game'
 
 
 
 function setup() {
-  
   console.log("Client socket: ", socket.id);
   playerId = uid;
   console.log('Client socket id:', playerId);
-  socket.emit("join", { "pid": playerId, "uid": uid });
-  
+
+  emmitSocketIO("join", { "pid": playerId, "uid": uid });
+
   // load images
   // medicImg = loadImage("https://cdn-icons.flaticon.com/png/512/2371/premium/2371329.png?token=exp=1646427991~hmac=66091d24f0f77d7e5a90a48fd33dc6d9");
   medicImg = loadImage("https://raw.githubusercontent.com/ngocntkt/visualization-map/master/aid.png");
   engineerImg = loadImage("https://raw.githubusercontent.com/ngocntkt/visualization-map/master/hammer2.png");
 
-  
   showElement("game-container");
-  async function getEpisode(){
-    const response = await fetch('/episode/'+uid+'/');
+  async function getEpisode() {
+    const response = await fetch('/episode/' + uid + '/');
     const data = await response.json();
     episode = Number(data) + 1;
     episodeDisplay.textContent = 'Episode: ' + episode;
   }
   getEpisode();
-  var canvas = createCanvas(0, 0); 
+  var canvas = createCanvas(0, 0);
+
+// initializeTEDGraph();
 }//end-setup
 
+function initializeTEDGraph(){
+  $(function () {
+    tedChart = {gaugeChartEffort : null,gaugeChartSkill : null, gaugeChartEfficiency: null};
+    tedChart.gaugeChartEffort = $('#gaugeChartEffort').epoch({
+        type: 'time.gauge',
+        value: 0
+      });
+    tedChart.gaugeChartSkill = $('#gaugeChartSkill').epoch({
+        type: 'time.gauge',
+        value: 0
+      });
+    tedChart.gaugeChartEfficiency = $('#gaugeChartEfficiency').epoch({
+        type: 'time.gauge',
+        value: 0
+      });
+
+    /*
+      tedChart.lineChart = $('#areaChart').epoch({
+        type: 'time.line',
+        data: [
+            {label: "Effort", values: getHistoricData()},
+            {label: "Skill", values: getHistoricData()},
+            {label: "Efficiency", values: getHistoricData()},
+        ],
+        axes: ['left', 'right', 'bottom']
+      });
+
+     */
+    tedChart.historyEff = [50,60,70,90,90,50,30,20,20,40,60,70];
+
+    $("#liveChartEffort").sparkline([50,60,70,90,90,50,30,20,20,40,60,70], {
+    type: 'line'});
+
+    });
+
+}
+function getHistoricData(){
+
+        var entries = 60;
+        var history = [];
+        for (var k = 0; k < 3; k++) {
+            var config = { values: [] };
+            history.push(config);
+        }
+        var timestamp = ((new Date()).getTime() / 1000);
+        for (var i = 0; i < entries; i++) {
+            for (var j = 0; j < 3; j++) {
+                history[j].values.push({time: timestamp, y:  parseInt(Math.random() * 100  ) + 50});
+            }
+            timestamp++;
+        }
+        return history;
+}
+console.log("VERSION 1.3");
+getTED.calledTimes = 0;
+function getTED() {
+  emmitSocketIO('ted', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': '' })
+  socket.on('ted response', function (msg) {
+
+    pos_element = getTED.calledTimes;
+
+    if (msg['ted_players'][pos_element] != undefined &&
+        msg['ted_players'][pos_element] != null &&
+        Object.keys(msg['ted_players'][pos_element]).length > 0) {
+      console.log("Effort: ", msg['ted_players'][pos_element]['process_effort_s']);
+      effortHis.push(msg['ted_players'][pos_element]['process_effort_s'])
+      console.log("Skill: ", msg['ted_players'][pos_element]['process_skill_use_s']);
+      // console.log("Coverage: ", msg['ted_players'][pos_element]['process_coverage']);
+      console.log('Efficiency: ', msg['ted_players'][pos_element]['process_workload_burnt']);
+      /*
+      document.getElementById('effort').innerHTML = 'Effort: ' + parseFloat(msg['ted_players'][pos_element]['process_effort_s']).toFixed(2);
+      document.getElementById('skill').innerHTML = 'Skill: ' + parseFloat(msg['ted_players'][pos_element]['process_skill_use_s']).toFixed(2);
+      document.getElementById('efficiency').innerHTML = 'Efficiency: ' + parseFloat(msg['ted_players'][pos_element]['process_workload_burnt']).toFixed(2);
+      */
+      var nowTime = Date.now();
+      tedChart.gaugeChartEffort.push(parseFloat(msg['ted_players'][pos_element]['Effort']));
+      tedChart.gaugeChartSkill.push( parseFloat(msg['ted_players'][pos_element]['Skill']));
+      tedChart.gaugeChartEfficiency.push(parseFloat(msg['ted_players'][pos_element]['Workload']));
+
+      /*
+      tedChart.lineChart.push(
+              [ {time: nowTime, y: parseInt(parseFloat(msg['ted_players'][pos_element]['process_effort_s'])*100)} ,
+               {time: nowTime, y: parseInt(parseFloat(msg['ted_players'][pos_element]['process_skill_use_s'])*100)},
+               {time: nowTime, y: parseInt(parseFloat(msg['ted_players'][pos_element]['process_workload_burnt'])*100)}
+        ]);
+
+*/
+      var effInt = [];
+      var forStartValue =0;
+      //onlu get 30 last positions
+      /*
+      if(effortHis.length > 30){
+        forStartValue = effortHis.length-30;
+      }
+
+      for(var i = forStartValue; effortHis.length; i++){
+        effInt[i] = parseInt(effortHis[i])*100;
+      }
+
+       */
+      console.log("Lengh history effort: "  + effortHis.length);
+      console.log("new value:" +msg['ted_players'][pos_element]['Effort'] * 100);
+      tedChart.historyEff.push(msg['ted_players'][pos_element]['Effort'] * 100)
+      $("#liveChartEffort").sparkline(tedChart.historyEff, { type: 'line'});
+
+    } else {
+      console.log(msg['ted_players'][pos_element].length)
+      console.log("Hmm: ", msg['ted_players'][pos_element]);
+      effortHis.push(0)
+    }
+
+    getTED.calledTimes++;
+  });
+}
 
 function getListPlayers() {
-  if (!isGameOver){
-    socket.emit('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': '' })
+  if (!isGameOver) {
+    emmitSocketIO('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': '' })
   }
-  
 
   socket.on('heartbeat', function (msg) {
-    // console.log("Heartbeat msg from server: ", msg);
     for (var k = 0; k < players.length; k++) {
       if (players[k] !== undefined) {
         var pid = players[k];
@@ -361,6 +526,7 @@ function getListPlayers() {
         var pid = players[k];
         otherX[k] = parseInt(msg['list_players'][pid]['x']);
         otherY[k] = parseInt(msg['list_players'][pid]['y']);
+        // roles[k] = msg['list_players'][roomid][pid]['role'].toString();
         updateEnvironment(otherX[k], otherY[k]);
         updateScoreBoard(msg['score']['green'], msg['score']['yellow'], msg['score']['red']);
       }
@@ -389,23 +555,27 @@ function updateScoreBoard(green, yellow, red) {
 function updateEnvironment(loc_x, loc_y) {
   if (grid[loc_x][loc_y].goal == 'yellow') {
     grid[loc_x][loc_y].goal = "";
-    socket.emit('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'yellow' })
+    emmitSocketIO('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'yellow' })
   }
   else if (grid[loc_x][loc_y].goal == 'green') {
     grid[loc_x][loc_y].goal = "";
-    socket.emit('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'green' })
+    emmitSocketIO('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'green' })
   }
+
   else if (grid[loc_x][loc_y].goal == 'red') {
     grid[loc_x][loc_y].goal = "";
-    socket.emit('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'red' })
+    emmitSocketIO('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'red' })
   }
+
   else if (grid[loc_x][loc_y].goal == 'door') {
+    // console.log('Hit door...');
     grid[loc_x][loc_y].goal = ''
-    socket.emit('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'door' })
+
+    emmitSocketIO('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'door' })
   }
   else if (grid[loc_x][loc_y].goal == 'rubble') {
     grid[loc_x][loc_y].goal = ''
-    socket.emit('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'rubble' })
+    emmitSocketIO('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'rubble' })
   }
 }
 
@@ -434,7 +604,7 @@ function generateGrid(data) {
   }
 
   traces.push("(" + agentX + "," + agentY + ")");
-  socket.emit('start', { "pid": playerId, 'uid': uid, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'start mission' })
+  emmitSocketIO('start', { "pid": playerId, 'uid': uid, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'start mission' })
 }
 
 function gameOver() {
@@ -452,9 +622,10 @@ function gameOver() {
   };
   writeData(data);
 
-  socket.emit('end', { "pid": playerId, 'uid': uid, 'gid': groupID, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'end mission', 'episode': episode })
-  async function getTotalPoint(){
-    const response = await fetch('/points/'+uid+'/');
+  emmitSocketIO('end', { "pid": playerId, 'uid': uid, 'gid': groupID, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'end mission', 'episode': episode })
+
+  async function getTotalPoint() {
+    const response = await fetch('/points/' + uid + '/');
     const data = await response.json();
     console.log(data)
     $('#tab-panel').hide();
@@ -463,10 +634,10 @@ function gameOver() {
 
     var h2 = $('h2', '.notification');
     $("div#notification h2").text(
-      "Total points of your team is: "+ data 
-      );
+      "Total points of your team is: " + data
+    );
     $("#notification-content").text(
-        "You have finished playing the game. You will be forwarded to the post-study section in a few seconds."
+      "You have finished playing the game. You will be forwarded to the post-study section in a few seconds."
     );
   }
 
@@ -476,9 +647,9 @@ function gameOver() {
     sleep(3000).then(() => {
       getTotalPoint();
     });
-    sleep(5000).then(() => {button.click();});
+    sleep(5000).then(() => { button.click(); });
 
-  } else{
+  } else {
     var button = document.getElementById('next-button');
     sleep(2000).then(() => {
       $('#tab-panel').hide();
@@ -511,6 +682,7 @@ function draw() {
           if (players[k] == playerId) {
             if (i == agentX && j == agentY) {
               grid[i][j].agent = true;
+              // grid[i][j].addMyAgent((k+1).toString());
               grid[i][j].addAgentImage(roles[k]);
               grid[i][j].goal = roles[k];
             }
@@ -581,11 +753,12 @@ let keyVal;
 function keyPressed() {
   if (!isGameOver) {
     if (keyIsDown(88) && !startSpeedUp) {
-      if (keyCode === UP_ARROW || keyCode === DOWN_ARROW || keyCode === LEFT_ARROW || keyCode === RIGHT_ARROW){
+      if (keyCode === UP_ARROW || keyCode === DOWN_ARROW || keyCode === LEFT_ARROW || keyCode === RIGHT_ARROW) {
         keysPressed[keyCode] = true;
         keyVal = keyCode;
         startSpeedUp = true;
-        socket.emit('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'start speedup' })
+        emmitSocketIO('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'start speedup' })
+        // console.log('Start speedup');
       }
     }
     if (keyCode === UP_ARROW) {
@@ -633,7 +806,7 @@ function keyPressed() {
         if (grid[tmpX][tmpY].goal == 'red') {
           if (roleName == "medic") {
             if (countPress > 1) {
-              socket.emit('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'triage red in-progress' })
+              emmitSocketIO('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'triage red in-progress' })
               // console.log('Triage Red in-progress');
             }
             if (countPress == 20) {
@@ -662,7 +835,7 @@ function keyPressed() {
                   "num_step": targetSteps, "time_spent": display.textContent, "trajectory": traces.join(";")
                 };
                 writeData(data);
-                socket.emit('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'red' })
+                emmitSocketIO('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'red' })
                 targetSteps = 0;
               }
               countPress = 0;
@@ -687,13 +860,13 @@ function keyPressed() {
             writeData(data);
             targetSteps = 0;
             traces = [];
-            socket.emit('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'door' })
+            emmitSocketIO('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'door' })
             break;
           }//endif engineer - only engineer can open door
         }
         else if (grid[tmpX][tmpY].goal == 'green') {
           if (countPress > 1) {
-            socket.emit('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'triage green in-progress' })
+            emmitSocketIO('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'triage green in-progress' })
           }
           if (countPress == 10) {
             curX = tmpX;
@@ -710,9 +883,10 @@ function keyPressed() {
               "num_step": targetSteps, "time_spent": display.textContent, "trajectory": traces.join(";")
             };
             writeData(data);
-            socket.emit('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'green' })
+            emmitSocketIO('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'green' })
             targetSteps = 0;
             traces = [];
+            // socket.emit('state update', {"type": "green", "x" : curX, "y" : curY});
             break;
 
           }
@@ -721,7 +895,7 @@ function keyPressed() {
           if (roleName == "medic") {
             if (countPress > 1) {
               // console.log('Triage Yellow in-progress');
-              socket.emit('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'triage yellow in-progress' })
+              emmitSocketIO('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'triage yellow in-progress' })
             }
             if (countPress == 20) {
               curX = tmpX;
@@ -738,9 +912,10 @@ function keyPressed() {
                 "num_step": targetSteps, "time_spent": display.textContent, "trajectory": traces.join(";")
               };
               writeData(data);
-              socket.emit('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'yellow' })
+              emmitSocketIO('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'yellow' })
               targetSteps = 0;
               traces = [];
+              // socket.emit('state update', {"type": "yellow", "x" : curX, "y" : curY});
               break;
             }
           }//endif medic - only medic can save
@@ -748,7 +923,8 @@ function keyPressed() {
         else if (grid[tmpX][tmpY].goal == 'rubble') {
           if (roleName == "engineer") {
             if (countPress > 1) {
-              socket.emit('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'clear rubble in-progress' })
+              // console.log('Clear Rubble in-progress');
+              emmitSocketIO('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'clear rubble in-progress' })
             }
             if (countPress == 5) {
               curX = tmpX;
@@ -760,10 +936,9 @@ function keyPressed() {
                 "num_step": targetSteps, "time_spent": display.textContent, "trajectory": traces.join(";")
               };
               writeData(data);
-              socket.emit('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'rubble' })
+              emmitSocketIO('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'rubble' })
               targetSteps = 0;
               traces = [];
-              // socket.emit('state update', {"type": "rubble", "x" : curX, "y" : curY});
               break;
             }
           }//endif engineer - only engineer can clear rubble
@@ -775,14 +950,14 @@ function keyPressed() {
 
 function keyReleased() {
   if (!isGameOver) {
-    if (keyCode === 88){
-      if (keysPressed[UP_ARROW] || keysPressed[DOWN_ARROW] || keysPressed[LEFT_ARROW] || keysPressed[RIGHT_ARROW]){
+    if (keyCode === 88) {
+      if (keysPressed[UP_ARROW] || keysPressed[DOWN_ARROW] || keysPressed[LEFT_ARROW] || keysPressed[RIGHT_ARROW]) {
         delete keysPressed[keyVal];
         startSpeedUp = false;
         // console.log('End speedup');
-        socket.emit('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'end speedup' })
+        emmitSocketIO('record', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'end speedup' })
       }
-      
+
     }
     checkBoundary(curX, curY);
   }
@@ -818,7 +993,7 @@ function checkBoundary(paraX, paraY) {
       listFoV = [];
     }
   }
-  socket.emit('update', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': '' })
+  emmitSocketIO('update', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': '' })
 }
 
 function getAction(dx, dy) {
