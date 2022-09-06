@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 user = "root"
-password = "1234"
+password = ""
 host = "localhost:3306"
 db_name = "team_minimap"
 
