@@ -258,7 +258,7 @@ socket.on('start game', function (msg) {
   clearInterval(timeout);
 
 
-  $('#tab-panel').show();
+  //$('#tab-panel').show();
   $('#tabgame').show();
   $('#lobby').hide();
 
@@ -410,25 +410,52 @@ function checkNumberOfBoxes(){
     }
     return false;
 }
-
+var opts = {
+  angle: 0, // The span of the gauge arc
+  lineWidth: 0.2, // The line thickness
+  radiusScale: 0.5, // Relative radius
+  pointer: {
+    length: 0.42, // // Relative to gauge radius
+    strokeWidth: 0.038, // The thickness
+    color: '#000000' // Fill color
+  },
+  limitMax: false,     // If false, max value increases automatically if value > maxValue
+  limitMin: false,     // If true, the min value of the gauge will be fixed
+  colorStart: '#6FADCF',   // Colors
+  colorStop: '#8FC0DA',    // just experiment with them
+  strokeColor: '#E0E0E0',  // to see which ones work best for you
+  generateGradient: true,
+  highDpiSupport: true,     // High resolution support
+  staticZones: [
+       {strokeStyle: "#F03E3E", min: 1, max: 20}, // Red from 100 to 130
+       {strokeStyle: "#FFDD00", min: 20, max: 50}, // Yellow
+       {strokeStyle: "#30B32D", min: 50, max: 80}, // Green
+       //{strokeStyle: "#FFDD00", min: 80, max: 100} // Yellow
+  ],
+};
 function drawGauge(ref,data, obj){
-    if(tedGraphs.showGauge){
-        if(obj == null){
-            return $(ref).epoch({
-            type: 'time.gauge',
-            value: 0
-          });
-        } else {
-            obj.push(data[data.length-1]/10);
-            return obj
-        }
+    if(obj == null){
+        /*obj = $(ref).epoch({
+        type: 'time.gauge',
+        value: 0
+      });*/
+        obj = new Gauge(document.getElementById(ref)).setOptions(opts);
+        obj.set(data[data.length-1]*100);
+        return obj;
+    } else {
+        obj.set(data[data.length-1] * 100);
+        //obj.push(data[data.length-1]/10);
+        return obj
     }
+
 }
 function drawSparkline(ref,data){
     if(tedGraphs.showSparkline && tedGraphs.showThreshold){
         $(ref).sparkline(data, { fillColor: false,
         //height: 70, width: 100,changeRangeMin: 0, chartRangeMax: 10,
         normalRangeMin: 4, normalRangeMax: 8,
+            height: 70,
+            width: 100,
       //lineColor: 'red'
       type: 'line'
   });
@@ -436,6 +463,8 @@ function drawSparkline(ref,data){
         if(tedGraphs.showSparkline){
                 $(ref).sparkline(data, { fillColor: false,
             //height: 70, changeRangeMin: 0, chartRangeMax: 10,width: 100, lineColor: 'red'
+            height: 70,
+            width: 100,
             type: 'line'
            });
         }
@@ -444,47 +473,71 @@ function drawSparkline(ref,data){
 }
 function drawGraphs(){
     if(tedGraphs.showEffort){
-        tedGraphs.effortGaugeRef = drawGauge("#gaugeChartEffort",tedGraphs.effortData, tedGraphs.effortGaugeRef)
+        tedGraphs.effortGaugeRef = drawGauge("gaugeChartEffort",tedGraphs.effortData, tedGraphs.effortGaugeRef)
         drawSparkline("#liveChartEffort",tedGraphs.effortData);
     }
     if(tedGraphs.showSkill){
-      tedGraphs.skillGaugeRef = drawGauge("#gaugeChartSkill",tedGraphs.skillData, tedGraphs.skillGaugeRef)
+      tedGraphs.skillGaugeRef = drawGauge("gaugeChartSkill",tedGraphs.skillData, tedGraphs.skillGaugeRef)
       drawSparkline("#liveChartSkill",tedGraphs.skillData);
     }
     if(tedGraphs.showEfficiency){
-        tedGraphs.efficiencyGaugeRef = drawGauge("#gaugeChartEfficiency",tedGraphs.efficiencyData, tedGraphs.efficiencyGaugeRef)
+        tedGraphs.efficiencyGaugeRef = drawGauge("gaugeChartEfficiency",tedGraphs.efficiencyData, tedGraphs.efficiencyGaugeRef)
         drawSparkline("#liveChartEfficiency",tedGraphs.efficiencyData);
     }
     if(tedGraphs.showCI){
-        tedGraphs.ciGaugeRef = drawGauge("#gaugeChartCI",tedGraphs.ciData, tedGraphs.ciGaugeRef)
+        tedGraphs.ciGaugeRef = drawGauge("gaugeChartCI",tedGraphs.ciData, tedGraphs.ciGaugeRef)
         drawSparkline("#liveChartCI",tedGraphs.ciData);
     }
 }
 
+var isInfoHidden=true;
+function setupInformationPanelToggle(){
+    $(function() {
+        $("#instructionsToggle").click(function () {
+            console.log("DID HIDE")
+            if (!isInfoHidden) {
+                $("#tab-panel").slideUp();
+                $(this).text("Show instructions");
+                isInfoHidden = true;
+            } else {
+                $("#tab-panel").slideDown();
+                $(this).text("Hide instructions");
+                isInfoHidden = false;
+            }
+        });
+    });
+}
+function hideTEDGraphs(){
+    $(".effortCharts").hide();
+    $(".skillCharts").hide();
+    $(".efficiencyCharts").hide();
+    $(".ciCharts").hide();
+}
+setupInformationPanelToggle();
 function initializeTEDGraph(){
   $(function() {
 
         $("#effortBox").click(function (e) {
             if(checkNumberOfBoxes()) {e.stopPropagation();e.preventDefault();return false;}
-            $("#effortCharts").toggle(this.checked);
+            $(".effortCharts").toggle(this.checked);
             tedGraphs.showEffort = this.checked;
             drawGraphs();
         });
         $("#skillBox").click(function (e) {
             if(checkNumberOfBoxes()) {e.stopPropagation();e.preventDefault();return false;}
-            $("#skillCharts").toggle(this.checked);
+            $(".skillCharts").toggle(this.checked);
             tedGraphs.showSkill = this.checked;
             drawGraphs();
         });
         $("#efficiencyBox").click(function (e){
             if(checkNumberOfBoxes()) {e.stopPropagation();e.preventDefault();return false;}
-            $("#efficiencyCharts").toggle(this.checked);
+            $(".efficiencyCharts").toggle(this.checked);
             tedGraphs.showEfficiency = this.checked;
             drawGraphs();
         });
         $("#ciBox").click(function (e){
             if(checkNumberOfBoxes()) {e.stopPropagation();e.preventDefault();return false;}
-            $("#ciCharts").toggle(this.checked);
+            $(".ciCharts").toggle(this.checked);
             tedGraphs.showCI = this.checked;
             drawGraphs();
         });
@@ -509,14 +562,14 @@ function initializeTEDGraph(){
 function checkGraphDataBoundaries(){
      if (tedGraphs.effortData.length > 30){
             //clean up data.
-             tedGraphs.effortData = tedGraphs.effortData.slice(tedGraphs.effortData.length-10,tedGraphs.effortData.length)
-             tedGraphs.skillData = tedGraphs.skillData.slice(tedGraphs.skillData.length-10,tedGraphs.skillData.length)
-             tedGraphs.efficiencyData = tedGraphs.efficiencyData.slice(tedGraphs.efficiencyData.length-10,tedGraphs.efficiencyData.length)
-             tedGraphs.ciData = tedGraphs.ciData.slice(tedGraphs.ciData.length-10,tedGraphs.ciData.length)
+             tedGraphs.effortData = tedGraphs.effortData.slice(tedGraphs.effortData.length-30,tedGraphs.effortData.length)
+             tedGraphs.skillData = tedGraphs.skillData.slice(tedGraphs.skillData.length-30,tedGraphs.skillData.length)
+             tedGraphs.efficiencyData = tedGraphs.efficiencyData.slice(tedGraphs.efficiencyData.length-30,tedGraphs.efficiencyData.length)
+             tedGraphs.ciData = tedGraphs.ciData.slice(tedGraphs.ciData.length-30,tedGraphs.ciData.length)
 
         }
 }
-console.log("VERSION 1.4.7");
+console.log("VERSION 1.5.5");
 /*
 TED GRAPHS END
 * */
@@ -525,8 +578,8 @@ getTED.calledTimes = 0;
 socket.on('ted response', function (msg) {
 
     pos_element = getTED.calledTimes;
-    console.log("GOT TED VALUES : " + pos_element);
-    console.log(msg);
+    console.log("GOT TED VALUES : " + pos_element +"  -  "+msg['ted_players'].length);
+    //console.log(msg);
     var tedPlayersLength = msg['ted_players'].length -1;
 
     if (msg['ted_players'][tedPlayersLength] != undefined &&
@@ -699,6 +752,7 @@ function generateGrid(data) {
 }
 
 function gameOver() {
+    hideTEDGraphs();
   isGameOver = true;
   clearInterval(timeout);
   clearInterval(intervalRecordData);
@@ -1037,6 +1091,7 @@ function keyPressed() {
       }
     }
   }
+  //return false;
 }
 
 function keyReleased() {
