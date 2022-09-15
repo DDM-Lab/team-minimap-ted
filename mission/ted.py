@@ -666,7 +666,7 @@ def compute_skills(data,msg_data, config):
 
         # indv_msg['Workload']+= player_data['explore_success_count']/config.extra_info['max_tiles']
         # indv_msg['Workload']*=0.5
-        indv_msg['Workload'] = indv_msg['Workload']*0.6 + (player_data['explore_success_count']/config.extra_info['max_tiles'])*0.4
+        indv_msg['Workload'] = indv_msg['Workload']*0.7 + (player_data['explore_success_count']/config.extra_info['max_tiles'])*0.3
         # print(player_data['inaction_red_duration_s'])
 
         msg_data['Workload']+=indv_msg['Workload']
@@ -926,7 +926,7 @@ class configuration:
               'total_triage_green':20,
               'total_triage_red':20,
               'total_triage_yellow':20,
-              'max_tiles':100, #Max tiles that can be covered in 10s
+              'max_tiles':200, #Max tiles that can be covered in 10s
               'max_victims':2, #victims saved per 10s asssuming every victim is saved during the trial
               'green_pos' : set(), #position (x,y) of victims
               'yellow_pos' : set(),

@@ -16,6 +16,7 @@ This version is featured with collective intelligence-based metrics, called TED 
 ## Requirements:
 - To run locally:
     - Python 3.7+ installed
+    - MySQL
     - A Web browser
 
 ## Local Installation

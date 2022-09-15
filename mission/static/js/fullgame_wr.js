@@ -534,9 +534,12 @@ socket.on('ted response', function (msg) {
         Object.keys(msg['ted_players'][tedPlayersLength]).length > 0) {
 
 
-      var effortValue = parseFloat(msg['ted_players'][tedPlayersLength]['Effort']) * 100;
-      var skillValue =  parseFloat(msg['ted_players'][tedPlayersLength]['Skill']) * 100;
-      var efficiencyValue = parseFloat(msg['ted_players'][tedPlayersLength]['Workload']) * 100;
+      var effortValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Effort']), 1) * 100;
+      console.log('Effort value', effortValue);
+      var skillValue =  min(parseFloat(msg['ted_players'][tedPlayersLength]['Skill']), 1)  * 100;
+      console.log('Skill value', skillValue);
+      var efficiencyValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Workload']), 1) * 100;
+      console.log('Efficiency value', efficiencyValue);
       var ciValue = efficiencyValue + skillValue + effortValue;
 
 
