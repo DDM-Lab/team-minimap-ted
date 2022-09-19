@@ -72,9 +72,9 @@ var intervalEmitSocket;
 let socketIOBuffer = [];
 let effortHis = [], skillHis = [], efficiencyHis = [];
 var tedGraphs = {
-            showEffort : false,
-            showSkill : false,
-            showEfficiency: false,
+            showEffort : true,
+            showSkill : true,
+            showEfficiency: true,
             showCI : false,
             showGauge: true,
             showSparkline: false,
@@ -419,17 +419,18 @@ var opts = {
     strokeWidth: 0.038, // The thickness
     color: '#000000' // Fill color
   },
-  limitMax: false,     // If false, max value increases automatically if value > maxValue
-  limitMin: false,     // If true, the min value of the gauge will be fixed
+  limitMax: true,     // If false, max value increases automatically if value > maxValue
+  limitMin: true,     // If true, the min value of the gauge will be fixed
   colorStart: '#6FADCF',   // Colors
   colorStop: '#8FC0DA',    // just experiment with them
   strokeColor: '#E0E0E0',  // to see which ones work best for you
+
   generateGradient: true,
   highDpiSupport: true,     // High resolution support
   staticZones: [
-       {strokeStyle: "#F03E3E", min: 1, max: 20}, // Red from 100 to 130
-       {strokeStyle: "#FFDD00", min: 20, max: 50}, // Yellow
-       {strokeStyle: "#30B32D", min: 50, max: 80}, // Green
+       //{strokeStyle: "#F03E3E", min: 1, max: 20}, // Red from 100 to 130
+       {strokeStyle: "#88acd0", min: 0, max: 50}, // Yellow
+       {strokeStyle: "#2d74b3", min: 50, max: 100}, // Green
        //{strokeStyle: "#FFDD00", min: 80, max: 100} // Yellow
   ],
 };
@@ -440,10 +441,11 @@ function drawGauge(ref,data, obj){
         value: 0
       });*/
         obj = new Gauge(document.getElementById(ref)).setOptions(opts);
-        obj.set(data[data.length-1]*100);
+        obj.set(data[data.length-1]);
         return obj;
     } else {
-        obj.set(data[data.length-1] * 100);
+        obj.set(data[data.length-1]);
+        console.log(data[data.length -1]);
         //obj.push(data[data.length-1]/10);
         return obj
     }
@@ -494,7 +496,7 @@ var isInfoHidden=true;
 function setupInformationPanelToggle(){
     $(function() {
         $("#instructionsToggle").click(function () {
-            console.log("DID HIDE")
+
             if (!isInfoHidden) {
                 $("#tab-panel").slideUp();
                 $(this).text("Show instructions");
@@ -558,6 +560,7 @@ function initializeTEDGraph(){
             drawGraphs();
         });
     });
+  drawGraphs();//to auto start the graphs
 }
 function checkGraphDataBoundaries(){
      if (tedGraphs.effortData.length > 30){
@@ -569,7 +572,7 @@ function checkGraphDataBoundaries(){
 
         }
 }
-console.log("VERSION 1.5.5");
+console.log("VERSION 1.5.9");
 /*
 TED GRAPHS END
 * */
