@@ -262,6 +262,9 @@ socket.on('start game', function (msg) {
   $('#tabgame').show();
   $('#lobby').hide();
 
+  $("#graphGaugesContainer").show();
+  initializeTEDGraph();
+
   getMap();
 
   async function getMap() {
@@ -342,6 +345,24 @@ socket.on('start game', function (msg) {
     }
   }, (minuteRedDie * 60 + secondRedDie) * 1000);
 
+  //TED GRAPH
+    setTimeout(function() {
+        var newOpts = {...opts};
+        newOpts["staticZones"] = [
+       {strokeStyle: "#88acd0", min: 0, max: 50}, // Yellow
+       {strokeStyle: "#2d74b3", min: 25, max: 50}, // Green
+        {strokeStyle: "#88acd0", min: 50, max: 100}
+
+        ]
+        console.log("Changing the effort graphs threshold");
+        tedGraphs.effortGaugeRef.setOptions(newOpts);
+
+    },1000*180);
+    setTimeout(()=>{
+        tedGraphs.effortGaugeRef.setOptions(opts);
+    }, totalMinutes * 1000);//reset at the end of the gameover
+
+    //END TED GRAPH
   intervalRecordData = setInterval(function () {
     if (!isGameOver) {
       var data = {
@@ -397,7 +418,6 @@ function setup() {
   getEpisode();
   var canvas = createCanvas(0, 0);
 
-  initializeTEDGraph();
 }//end-setup
 
 /*
@@ -434,6 +454,7 @@ var opts = {
        //{strokeStyle: "#FFDD00", min: 80, max: 100} // Yellow
   ],
 };
+var effortThreshold = 0;
 function drawGauge(ref,data, obj){
     if(obj == null){
         /*obj = $(ref).epoch({
@@ -514,6 +535,7 @@ function hideTEDGraphs(){
     $(".skillCharts").hide();
     $(".efficiencyCharts").hide();
     $(".ciCharts").hide();
+    $("#graphGaugesContainer").hide();
 }
 setupInformationPanelToggle();
 function initializeTEDGraph(){
@@ -572,7 +594,7 @@ function checkGraphDataBoundaries(){
 
         }
 }
-console.log("VERSION 1.5.9");
+console.log("VERSION 1.6.5");
 /*
 TED GRAPHS END
 * */
@@ -756,6 +778,7 @@ function generateGrid(data) {
 
 function gameOver() {
     hideTEDGraphs();
+
   isGameOver = true;
   clearInterval(timeout);
   clearInterval(intervalRecordData);
