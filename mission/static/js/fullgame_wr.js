@@ -596,7 +596,7 @@ function checkGraphDataBoundaries(){
 
         }
 }
-console.log("VERSION 1.6.5");
+console.log("VERSION 1.6.6");
 /*
 TED GRAPHS END
 * */
