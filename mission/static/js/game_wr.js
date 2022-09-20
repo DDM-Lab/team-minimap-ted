@@ -71,19 +71,19 @@ var intervalEmitSocket;
 
 let socketIOBuffer = [];
 let effortHis = [], skillHis = [], efficiencyHis = [];
-var tedGraphs = {	
-  showEffort : true,	
-  showSkill : true,	
-  showEfficiency: true,	
-  showCI : false,	
-  showGauge: true,	
-  showSparkline: false,	
-  showThreshold : false,	
+var tedGraphs = {
+  showEffort: true,
+  showSkill: true,
+  showEfficiency: true,
+  showCI: false,
+  showGauge: true,
+  showSparkline: false,
+  showThreshold: false,
 
-  effortData :[],	
-  skillData :[],	
-  efficiencyData :[],	
-  ciData :[]	
+  effortData: [],
+  skillData: [],
+  efficiencyData: [],
+  ciData: []
 };
 
 // waiting room
@@ -121,9 +121,9 @@ function showFullView(chkFull) {
   }
 }
 
-function sendFailedSocketEmits(){
-  if(socketIOBuffer.length>0){
-    for(let i=0;i<socketIOBuffer.length; i++){
+function sendFailedSocketEmits() {
+  if (socketIOBuffer.length > 0) {
+    for (let i = 0; i < socketIOBuffer.length; i++) {
       emmitSocketIO(socketIOBuffer[i].endpoint, socketIOBuffer[i].value);
     }
   }
@@ -146,19 +146,19 @@ const withTimeout = (onSuccess, onTimeout, timeout) => {
   }
 }
 
-function emmitSocketIO(endpoint, value){
+function emmitSocketIO(endpoint, value) {
   try {
     if (socket) {
-        socket.emit(endpoint, value, withTimeout(
-            () => {},
-            () => {
-              socketIOBuffer.push({endpoint: endpoint,value: value})
-             }, 1000));
+      socket.emit(endpoint, value, withTimeout(
+        () => { },
+        () => {
+          socketIOBuffer.push({ endpoint: endpoint, value: value })
+        }, 1000));
     } else {
-      socketIOBuffer.push({endpoint: endpoint,value: value})
+      socketIOBuffer.push({ endpoint: endpoint, value: value })
     }
-  }catch (e){
-    socketIOBuffer.push({endpoint: endpoint,value: value})
+  } catch (e) {
+    socketIOBuffer.push({ endpoint: endpoint, value: value })
   }
 }
 
@@ -291,15 +291,15 @@ socket.on('start game', function (msg) {
     roomid = msg['roomid'][playerId]
     console.log('room id', roomid)
     groupSize = Object.keys(msg['list_players'][roomid]).length;
-    
+
     players = Object.keys(msg['list_players'][roomid]);
-    
+
     for (const [key, value] of Object.entries(msg['list_players'][roomid])) {
       objVal = value;
       otherX.push(Object.values(objVal)[0]);
       otherY.push(Object.values(objVal)[1]);
 
-      
+
 
       roles.push(Object.values(objVal)[2]);
       if (key == playerId) {
@@ -310,7 +310,7 @@ socket.on('start game', function (msg) {
 
         groupID = parseInt(roomid);
         const isMyIndex = (myIndex) => myIndex == playerId;
-        
+
         // document.getElementById('pid').innerHTML = 'Player id: ' + (players.findIndex(isMyIndex) + 1).toString() + ' | User id: ' + uid.toString();
         // document.getElementById('other_pid').innerHTML = ' | Your role: ' + roleName.toString() + ' | Group: ' + (groupID + 1).toString();
         if (groupID !== undefined && isFirst) {
@@ -346,23 +346,26 @@ socket.on('start game', function (msg) {
   }, (minuteRedDie * 60 + secondRedDie) * 1000);
 
   //TED GRAPH
-  setTimeout(function() {
-    var newOpts = {...opts};
+  setTimeout(function () {
+    var newOpts = { ...opts };
     newOpts["staticZones"] = [
-   {strokeStyle: "#88acd0", min: 0, max: 50}, // Yellow
-   {strokeStyle: "#2d74b3", min: 25, max: 50}, // Green
-    {strokeStyle: "#88acd0", min: 50, max: 100}
+      { strokeStyle: "#88acd0", min: 0, max: 50 }, // Yellow
+      { strokeStyle: "#2d74b3", min: 25, max: 50 }, // Green
+      { strokeStyle: "#88acd0", min: 50, max: 100 }
 
     ]
-    console.log("Changing the effort graphs threshold");
-    tedGraphs.effortGaugeRef.setOptions(newOpts);
+    console.log("Changing the skill and efficiency graphs threshold");
+    tedGraphs.skillGaugeRef.setOptions(newOpts)
+    tedGraphs.efficiencyGaugeRef.setOptions(newOpts);
 
-},1000*180);
-setTimeout(()=>{
-    tedGraphs.effortGaugeRef.setOptions(opts);
-}, totalMinutes * 1000);//reset at the end of the gameover
+  }, 1000 * 180);
+  setTimeout(() => {
+    // tedGraphs.effortGaugeRef.setOptions(opts);
+    tedGraphs.skillGaugeRef.setOptions(opts);
+    tedGraphs.efficiencyGaugeRef.setOptions(opts)
+  }, totalMinutes * 1000);//reset at the end of the gameover
 
-//END TED GRAPH
+  //END TED GRAPH
 
   intervalRecordData = setInterval(function () {
     if (!isGameOver) {
@@ -389,8 +392,8 @@ setTimeout(()=>{
   }, 1000);
 
   if (!isGameOver) {
-    
-    setInterval(getListPlayers, 100); 
+
+    setInterval(getListPlayers, 100);
     setInterval(getTED, 10000); //call TED every 10s: 10000
   }
 }); //end socket on 'start game'
@@ -419,120 +422,122 @@ function setup() {
   getEpisode();
   var canvas = createCanvas(0, 0);
 
-// initializeTEDGraph();
+  // initializeTEDGraph();
 }//end-setup
 
 /*
 TED GRAPHS START
 * */
-function checkNumberOfBoxes(){
-  if($(".typeOfGraphBox:checked").length > 3){
-      alert("Only 3 graphs can be displayed !");
-      return true;
+function checkNumberOfBoxes() {
+  if ($(".typeOfGraphBox:checked").length > 3) {
+    alert("Only 3 graphs can be displayed !");
+    return true;
   }
   return false;
 }
 var opts = {
-angle: 0, // The span of the gauge arc
-lineWidth: 0.2, // The line thickness
-radiusScale: 0.5, // Relative radius
-pointer: {
-  length: 0.42, // // Relative to gauge radius
-  strokeWidth: 0.038, // The thickness
-  color: '#000000' // Fill color
-},
-limitMax: true,     // If false, max value increases automatically if value > maxValue
-limitMin: true,     // If true, the min value of the gauge will be fixed
-colorStart: '#6FADCF',   // Colors
-colorStop: '#8FC0DA',    // just experiment with them
-strokeColor: '#E0E0E0',  // to see which ones work best for you
+  angle: 0, // The span of the gauge arc
+  lineWidth: 0.2, // The line thickness
+  radiusScale: 0.5, // Relative radius
+  pointer: {
+    length: 0.42, // // Relative to gauge radius
+    strokeWidth: 0.038, // The thickness
+    color: '#000000' // Fill color
+  },
+  limitMax: true,     // If false, max value increases automatically if value > maxValue
+  limitMin: true,     // If true, the min value of the gauge will be fixed
+  colorStart: '#6FADCF',   // Colors
+  colorStop: '#8FC0DA',    // just experiment with them
+  strokeColor: '#E0E0E0',  // to see which ones work best for you
 
-generateGradient: true,
-highDpiSupport: true,     // High resolution support
-staticZones: [
-     //{strokeStyle: "#F03E3E", min: 1, max: 20}, // Red from 100 to 130
-     {strokeStyle: "#88acd0", min: 0, max: 50}, // Yellow
-     {strokeStyle: "#2d74b3", min: 50, max: 100}, // Green
-     //{strokeStyle: "#FFDD00", min: 80, max: 100} // Yellow
-],
+  generateGradient: true,
+  highDpiSupport: true,     // High resolution support
+  staticZones: [
+    //{strokeStyle: "#F03E3E", min: 1, max: 20}, // Red from 100 to 130
+    { strokeStyle: "#88acd0", min: 0, max: 50 }, // Yellow
+    { strokeStyle: "#2d74b3", min: 50, max: 100 }, // Green
+    //{strokeStyle: "#FFDD00", min: 80, max: 100} // Yellow
+  ],
 };
 var effortThreshold = 0;
-function drawGauge(ref,data, obj){
-  if(obj == null){
-      /*obj = $(ref).epoch({
-      type: 'time.gauge',
-      value: 0
-    });*/
-      obj = new Gauge(document.getElementById(ref)).setOptions(opts);
-      obj.set(data[data.length-1]);
-      return obj;
+function drawGauge(ref, data, obj) {
+  if (obj == null) {
+    /*obj = $(ref).epoch({
+    type: 'time.gauge',
+    value: 0
+  });*/
+    obj = new Gauge(document.getElementById(ref)).setOptions(opts);
+    obj.set(data[data.length - 1]);
+    return obj;
   } else {
-      obj.set(data[data.length-1]);
-      console.log(data[data.length -1]);
-      //obj.push(data[data.length-1]/10);
-      return obj
+    obj.set(data[data.length - 1]);
+    console.log(data[data.length - 1]);
+    //obj.push(data[data.length-1]/10);
+    return obj
   }
 
 }
-function drawSparkline(ref,data){
-  if(tedGraphs.showSparkline && tedGraphs.showThreshold){
-      $(ref).sparkline(data, { fillColor: false,
+function drawSparkline(ref, data) {
+  if (tedGraphs.showSparkline && tedGraphs.showThreshold) {
+    $(ref).sparkline(data, {
+      fillColor: false,
       //height: 70, width: 100,changeRangeMin: 0, chartRangeMax: 10,
       normalRangeMin: 4, normalRangeMax: 8,
-          height: 70,
-          width: 100,
-    //lineColor: 'red'
-    type: 'line'
-});
+      height: 70,
+      width: 100,
+      //lineColor: 'red'
+      type: 'line'
+    });
   } else {
-      if(tedGraphs.showSparkline){
-              $(ref).sparkline(data, { fillColor: false,
-          //height: 70, changeRangeMin: 0, chartRangeMax: 10,width: 100, lineColor: 'red'
-          height: 70,
-          width: 100,
-          type: 'line'
-         });
-      }
-  }
-
-}
-function drawGraphs(){
-  if(tedGraphs.showEffort){
-      tedGraphs.effortGaugeRef = drawGauge("gaugeChartEffort",tedGraphs.effortData, tedGraphs.effortGaugeRef)
-      drawSparkline("#liveChartEffort",tedGraphs.effortData);
-  }
-  if(tedGraphs.showSkill){
-    tedGraphs.skillGaugeRef = drawGauge("gaugeChartSkill",tedGraphs.skillData, tedGraphs.skillGaugeRef)
-    drawSparkline("#liveChartSkill",tedGraphs.skillData);
-  }
-  if(tedGraphs.showEfficiency){
-      tedGraphs.efficiencyGaugeRef = drawGauge("gaugeChartEfficiency",tedGraphs.efficiencyData, tedGraphs.efficiencyGaugeRef)
-      drawSparkline("#liveChartEfficiency",tedGraphs.efficiencyData);
-  }
-  if(tedGraphs.showCI){
-      tedGraphs.ciGaugeRef = drawGauge("gaugeChartCI",tedGraphs.ciData, tedGraphs.ciGaugeRef)
-      drawSparkline("#liveChartCI",tedGraphs.ciData);
-  }
-}
-
-var isInfoHidden=true;
-function setupInformationPanelToggle(){
-  $(function() {
-      $("#instructionsToggle").click(function () {
-
-          if (!isInfoHidden) {
-              $("#tab-panel").slideUp();
-              $(this).text("Show instructions");
-              isInfoHidden = true;
-          } else {
-              $("#tab-panel").slideDown();
-              $(this).text("Hide instructions");
-              isInfoHidden = false;
-          }
+    if (tedGraphs.showSparkline) {
+      $(ref).sparkline(data, {
+        fillColor: false,
+        //height: 70, changeRangeMin: 0, chartRangeMax: 10,width: 100, lineColor: 'red'
+        height: 70,
+        width: 100,
+        type: 'line'
       });
+    }
+  }
+
+}
+function drawGraphs() {
+  if (tedGraphs.showEffort) {
+    tedGraphs.effortGaugeRef = drawGauge("gaugeChartEffort", tedGraphs.effortData, tedGraphs.effortGaugeRef)
+    drawSparkline("#liveChartEffort", tedGraphs.effortData);
+  }
+  if (tedGraphs.showSkill) {
+    tedGraphs.skillGaugeRef = drawGauge("gaugeChartSkill", tedGraphs.skillData, tedGraphs.skillGaugeRef)
+    drawSparkline("#liveChartSkill", tedGraphs.skillData);
+  }
+  if (tedGraphs.showEfficiency) {
+    tedGraphs.efficiencyGaugeRef = drawGauge("gaugeChartEfficiency", tedGraphs.efficiencyData, tedGraphs.efficiencyGaugeRef)
+    drawSparkline("#liveChartEfficiency", tedGraphs.efficiencyData);
+  }
+  if (tedGraphs.showCI) {
+    tedGraphs.ciGaugeRef = drawGauge("gaugeChartCI", tedGraphs.ciData, tedGraphs.ciGaugeRef)
+    drawSparkline("#liveChartCI", tedGraphs.ciData);
+  }
+}
+
+var isInfoHidden = true;
+function setupInformationPanelToggle() {
+  $(function () {
+    $("#instructionsToggle").click(function () {
+
+      if (!isInfoHidden) {
+        $("#tab-panel").slideUp();
+        $(this).text("Show instructions");
+        isInfoHidden = true;
+      } else {
+        $("#tab-panel").slideDown();
+        $(this).text("Hide instructions");
+        isInfoHidden = false;
+      }
+    });
   });
 }
-function hideTEDGraphs(){
+function hideTEDGraphs() {
   $(".effortCharts").hide();
   $(".skillCharts").hide();
   $(".efficiencyCharts").hide();
@@ -540,63 +545,63 @@ function hideTEDGraphs(){
   $("#graphGaugesContainer").hide();
 }
 setupInformationPanelToggle();
-function initializeTEDGraph(){
-$(function() {
+function initializeTEDGraph() {
+  $(function () {
 
-      $("#effortBox").click(function (e) {
-          if(checkNumberOfBoxes()) {e.stopPropagation();e.preventDefault();return false;}
-          $(".effortCharts").toggle(this.checked);
-          tedGraphs.showEffort = this.checked;
-          drawGraphs();
-      });
-      $("#skillBox").click(function (e) {
-          if(checkNumberOfBoxes()) {e.stopPropagation();e.preventDefault();return false;}
-          $(".skillCharts").toggle(this.checked);
-          tedGraphs.showSkill = this.checked;
-          drawGraphs();
-      });
-      $("#efficiencyBox").click(function (e){
-          if(checkNumberOfBoxes()) {e.stopPropagation();e.preventDefault();return false;}
-          $(".efficiencyCharts").toggle(this.checked);
-          tedGraphs.showEfficiency = this.checked;
-          drawGraphs();
-      });
-      $("#ciBox").click(function (e){
-          if(checkNumberOfBoxes()) {e.stopPropagation();e.preventDefault();return false;}
-          $(".ciCharts").toggle(this.checked);
-          tedGraphs.showCI = this.checked;
-          drawGraphs();
-      });
+    $("#effortBox").click(function (e) {
+      if (checkNumberOfBoxes()) { e.stopPropagation(); e.preventDefault(); return false; }
+      $(".effortCharts").toggle(this.checked);
+      tedGraphs.showEffort = this.checked;
+      drawGraphs();
+    });
+    $("#skillBox").click(function (e) {
+      if (checkNumberOfBoxes()) { e.stopPropagation(); e.preventDefault(); return false; }
+      $(".skillCharts").toggle(this.checked);
+      tedGraphs.showSkill = this.checked;
+      drawGraphs();
+    });
+    $("#efficiencyBox").click(function (e) {
+      if (checkNumberOfBoxes()) { e.stopPropagation(); e.preventDefault(); return false; }
+      $(".efficiencyCharts").toggle(this.checked);
+      tedGraphs.showEfficiency = this.checked;
+      drawGraphs();
+    });
+    $("#ciBox").click(function (e) {
+      if (checkNumberOfBoxes()) { e.stopPropagation(); e.preventDefault(); return false; }
+      $(".ciCharts").toggle(this.checked);
+      tedGraphs.showCI = this.checked;
+      drawGraphs();
+    });
 
-      $("#showGauge").click(function (e){
-          $(".graphGauge").toggle(this.checked);
-          tedGraphs.showGauge = this.checked;
-          drawGraphs();
-      });
-      $("#showGraph").click(function (e){
-         $(".sparkLine").toggle(this.checked);
-         $("#showThreshold").prop("disabled", !this.checked);
-         tedGraphs.showSparkline = this.checked;
-         drawGraphs();
-      });
-      $("#showThreshold").click(function (e){
-          tedGraphs.showThreshold = this.checked;
-          drawGraphs();
-      });
+    $("#showGauge").click(function (e) {
+      $(".graphGauge").toggle(this.checked);
+      tedGraphs.showGauge = this.checked;
+      drawGraphs();
+    });
+    $("#showGraph").click(function (e) {
+      $(".sparkLine").toggle(this.checked);
+      $("#showThreshold").prop("disabled", !this.checked);
+      tedGraphs.showSparkline = this.checked;
+      drawGraphs();
+    });
+    $("#showThreshold").click(function (e) {
+      tedGraphs.showThreshold = this.checked;
+      drawGraphs();
+    });
   });
-drawGraphs();//to auto start the graphs
+  drawGraphs();//to auto start the graphs
 }
-function checkGraphDataBoundaries(){
-   if (tedGraphs.effortData.length > 30){
-          //clean up data.
-           tedGraphs.effortData = tedGraphs.effortData.slice(tedGraphs.effortData.length-30,tedGraphs.effortData.length)
-           tedGraphs.skillData = tedGraphs.skillData.slice(tedGraphs.skillData.length-30,tedGraphs.skillData.length)
-           tedGraphs.efficiencyData = tedGraphs.efficiencyData.slice(tedGraphs.efficiencyData.length-30,tedGraphs.efficiencyData.length)
-           tedGraphs.ciData = tedGraphs.ciData.slice(tedGraphs.ciData.length-30,tedGraphs.ciData.length)
+function checkGraphDataBoundaries() {
+  if (tedGraphs.effortData.length > 30) {
+    //clean up data.
+    tedGraphs.effortData = tedGraphs.effortData.slice(tedGraphs.effortData.length - 30, tedGraphs.effortData.length)
+    tedGraphs.skillData = tedGraphs.skillData.slice(tedGraphs.skillData.length - 30, tedGraphs.skillData.length)
+    tedGraphs.efficiencyData = tedGraphs.efficiencyData.slice(tedGraphs.efficiencyData.length - 30, tedGraphs.efficiencyData.length)
+    tedGraphs.ciData = tedGraphs.ciData.slice(tedGraphs.ciData.length - 30, tedGraphs.ciData.length)
 
-      }
+  }
 }
-console.log("VERSION 1.6.5");
+console.log("VERSION 1.6.6");
 /*
 TED GRAPHS END
 * */
@@ -605,18 +610,18 @@ getTED.calledTimes = 0;
 socket.on('ted response', function (msg) {
 
   pos_element = getTED.calledTimes;
-  console.log("GOT TED VALUES : " + pos_element +"  -  "+msg['ted_players'].length);
+  console.log("GOT TED VALUES : " + pos_element + "  -  " + msg['ted_players'].length);
   //console.log(msg);
-  var tedPlayersLength = msg['ted_players'].length -1;
+  var tedPlayersLength = msg['ted_players'].length - 1;
 
   if (msg['ted_players'][tedPlayersLength] != undefined &&
-      msg['ted_players'][tedPlayersLength] != null &&
-      Object.keys(msg['ted_players'][tedPlayersLength]).length > 0) {
+    msg['ted_players'][tedPlayersLength] != null &&
+    Object.keys(msg['ted_players'][tedPlayersLength]).length > 0) {
 
 
     var effortValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Effort']), 1) * 100;
     console.log('Effort value', effortValue);
-    var skillValue =  min(parseFloat(msg['ted_players'][tedPlayersLength]['Skill']), 1)  * 100;
+    var skillValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Skill']), 1) * 100;
     console.log('Skill value', skillValue);
     var efficiencyValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Workload']), 1) * 100;
     console.log('Efficiency value', efficiencyValue);
@@ -624,13 +629,13 @@ socket.on('ted response', function (msg) {
 
 
 
-      tedGraphs.effortData.push((effortValue !== undefined && !isNaN(effortValue))?(effortValue):(0))
-      tedGraphs.skillData.push((skillValue !== undefined && !isNaN(skillValue))?(skillValue):(0))
-      tedGraphs.efficiencyData.push((efficiencyValue !== undefined && !isNaN(efficiencyValue))?(efficiencyValue):(0))
-      tedGraphs.ciData.push((ciValue !== undefined && !isNaN(ciValue))?(ciValue):(0));
+    tedGraphs.effortData.push((effortValue !== undefined && !isNaN(effortValue)) ? (effortValue) : (0))
+    tedGraphs.skillData.push((skillValue !== undefined && !isNaN(skillValue)) ? (skillValue) : (0))
+    tedGraphs.efficiencyData.push((efficiencyValue !== undefined && !isNaN(efficiencyValue)) ? (efficiencyValue) : (0))
+    tedGraphs.ciData.push((ciValue !== undefined && !isNaN(ciValue)) ? (ciValue) : (0));
 
-      checkGraphDataBoundaries();
-      drawGraphs();
+    checkGraphDataBoundaries();
+    drawGraphs();
 
     //console.log("Effort: ", msg['ted_players'][pos_element]['process_effort_s']);
     //effortHis.push(msg['ted_players'][pos_element]['process_effort_s'])
@@ -645,7 +650,7 @@ socket.on('ted response', function (msg) {
     var nowTime = Date.now();
 
     var effInt = [];
-    var forStartValue =0;
+    var forStartValue = 0;
 
     //console.log("Lengh history effort: "  + effortHis.length);
     //console.log("new value:" +msg['ted_players'][pos_element]['Effort'] * 100);
@@ -655,64 +660,64 @@ socket.on('ted response', function (msg) {
   } else {
     //console.log(msg['ted_players'][pos_element].length)
     //console.log("Hmm: ", msg['ted_players'][pos_element]);
-      effortHis.push(0)
-      tedGraphs.effortData.push(0)
-      tedGraphs.skillData.push(0)
-      tedGraphs.efficiencyData.push(0)
-      tedGraphs.ciData.push(0);
+    effortHis.push(0)
+    tedGraphs.effortData.push(0)
+    tedGraphs.skillData.push(0)
+    tedGraphs.efficiencyData.push(0)
+    tedGraphs.ciData.push(0);
     checkGraphDataBoundaries();
   }
 
   getTED.calledTimes++;
 });
 function getTED() {
-emmitSocketIO('ted', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': '' })
+  emmitSocketIO('ted', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': '' })
 }
 
 function getListPlayers() {
   if (!isGameOver) {
-      emmitSocketIO('periodic call', {
-          "pid": playerId,
-          "x": agentX,
-          "y": agentY,
-          'mission_time': display.textContent,
-          'event': ''
-      });
+    emmitSocketIO('periodic call', {
+      "pid": playerId,
+      "x": agentX,
+      "y": agentY,
+      'mission_time': display.textContent,
+      'event': ''
+    });
   }
 }
 
-  socket.on('heartbeat', function (msg) {
-    for (var k = 0; k < players.length; k++) {
-      if (players[k] !== undefined) {
-        var pid = players[k];
-        otherX[k] = parseInt(msg[pid]['x']);
-        otherY[k] = parseInt(msg[pid]['y']);
-        roles[k] = msg[pid]['role'].toString();
-        updateEnvironment(otherX[k], otherY[k]);
-      }
+socket.on('heartbeat', function (msg) {
+  for (var k = 0; k < players.length; k++) {
+    if (players[k] !== undefined) {
+      var pid = players[k];
+      otherX[k] = parseInt(msg[pid]['x']);
+      otherY[k] = parseInt(msg[pid]['y']);
+      roles[k] = msg[pid]['role'].toString();
+      updateEnvironment(otherX[k], otherY[k]);
     }
-  });
+  }
+});
 
-  socket.on('on change', function (msg) {
-    players = Object.keys(msg['list_players']);
-    for (var k = 0; k < players.length; k++) {
-      if (players[k] !== undefined) {
-        var pid = players[k];
-        otherX[k] = parseInt(msg['list_players'][pid]['x']);
-        otherY[k] = parseInt(msg['list_players'][pid]['y']);
-        // roles[k] = msg['list_players'][roomid][pid]['role'].toString();
-        updateEnvironment(otherX[k], otherY[k]);
-        updateScoreBoard(msg['score']['green'], msg['score']['yellow'], msg['score']['red']);
-      }
+socket.on('on change', function (msg) {
+  players = Object.keys(msg['list_players']);
+  for (var k = 0; k < players.length; k++) {
+    if (players[k] !== undefined) {
+      var pid = players[k];
+      otherX[k] = parseInt(msg['list_players'][pid]['x']);
+      otherY[k] = parseInt(msg['list_players'][pid]['y']);
+      // roles[k] = msg['list_players'][roomid][pid]['role'].toString();
+      updateEnvironment(otherX[k], otherY[k]);
+      updateScoreBoard(msg['score']['green'], msg['score']['yellow'], msg['score']['red']);
     }
-  });
+  }
+});
 
-  socket.on('leave', function (msg) {
-    var idx = players.indexOf(msg['pid'])
-    if (idx != -1) {
-      delete players[idx];
-    }
-  });
+socket.on('leave', function (msg) {
+  var idx = players.indexOf(msg['pid'])
+  if (idx != -1) {
+    delete players[idx];
+  }
+});
 // }//end getListPlayer
 
 function updateScoreBoard(green, yellow, red) {
@@ -1139,10 +1144,10 @@ function keyReleased() {
 }
 
 function checkBoundary(paraX, paraY) {
-  if (grid[paraX] != undefined && grid[paraX][paraY] != undefined &&(
+  if (grid[paraX] != undefined && grid[paraX][paraY] != undefined && (
     grid[paraX][paraY].goal == 'wall' || grid[paraX][paraY].goal == 'door' || grid[paraX][paraY].goal == 'yellow' ||
-  grid[paraX][paraY].goal == 'green' || grid[paraX][paraY].goal == 'rubble' ||
-  grid[paraX][paraY].goal == 'red' )) {
+    grid[paraX][paraY].goal == 'green' || grid[paraX][paraY].goal == 'rubble' ||
+    grid[paraX][paraY].goal == 'red')) {
     paraX = agentX;
     paraY = agentY;
   }
