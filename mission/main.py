@@ -67,7 +67,7 @@ players = {}
 n_rooms = 1
 n_gen_room = get_group_id()
 
-number_human = [1,1]
+number_human = [2,2]
 
 player_per_room = number_human[0]+number_human[1]
 human_role = []
