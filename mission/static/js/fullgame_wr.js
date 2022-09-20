@@ -354,12 +354,14 @@ socket.on('start game', function (msg) {
         {strokeStyle: "#88acd0", min: 50, max: 100}
 
         ]
-        console.log("Changing the effort graphs threshold");
-        tedGraphs.effortGaugeRef.setOptions(newOpts);
+        console.log("Changing the skill and efficiency graphs threshold");
+        tedGraphs.skillGaugeRef.setOptions(newOpts)
+        tedGraphs.efficiencyGaugeRef.setOptions(newOpts);
 
     },1000*180);
     setTimeout(()=>{
-        tedGraphs.effortGaugeRef.setOptions(opts);
+        tedGraphs.skillGaugeRef.setOptions(opts);
+        tedGraphs.efficiencyGaugeRef.setOptions(opts)
     }, totalMinutes * 1000);//reset at the end of the gameover
 
     //END TED GRAPH
@@ -594,7 +596,7 @@ function checkGraphDataBoundaries(){
 
         }
 }
-console.log("VERSION 1.6.5");
+console.log("VERSION 1.6.6");
 /*
 TED GRAPHS END
 * */
