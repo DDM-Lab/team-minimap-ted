@@ -157,7 +157,7 @@
                     <div id="sketch-holder">
                         <!-- <script src="{{ url_for('static', path='js/game.js')}}"></script>
                         <script src="{{ url_for('static', path='js/cell.js')}}"></script> -->
-                        <script src="{{ url_for('static', path='js/fullgame_wr.js?v=')}}9084234234287999895834823904865445"></script>
+                        <script src="{{ url_for('static', path='js/fullgame_wr.js?v=')}}214234234287999895834823904865445"></script>
                         <script src="{{ url_for('static', path='js/cell.js?v=')}}"></script>
                     </div>
                     
@@ -215,7 +215,7 @@
         <br/>
         <h3><span id="notification-content">You are going to move to the next episode in a few seconds.</span></h3>
     </div>
-    <div style="position: absolute; top: 10px; right : 20px;background-color:black; color: white; opacity:0.4;padding: 30px; display:none">
+    <div style="position: absolute; top: 10px; left : 20px;background-color:black; color: white; opacity:0.4;padding: 30px; display:none">
         <div><input id="effortBox" class="typeOfGraphBox" type="checkbox"  /> Effort</div>
         <div><input id="skillBox" class="typeOfGraphBox" type="checkbox" value="" /> Skill</div>
         <div><input id="efficiencyBox"class="typeOfGraphBox"  type="checkbox" value="" /> Efficiency</div>
@@ -225,24 +225,24 @@
         <div><input id="showGraph" type="checkbox" /> Show line graph</div>
         <div><input id="showThreshold" type="checkbox" value="" disabled/> Display threshold</div>
     </div>
-    <div style="position: absolute;left: 0px;top:80px;display:none" id="graphGaugesContainer">
+    <div style="position: absolute;right: 0px;top:80px;display:none" id="graphGaugesContainer">
         <div style="display: flex;align-items: center;justify-content: space-around;flex-direction: column">
             <div style="position: absolute;top:0px;left:0px;height:100%;width:100%;background-color: black; opacity: 0.15;z-index: 1"></div>
             <div class="effortCharts" style="text-align: center;"><!-- display: none; -->
-                <canvas id="gaugeChartEffort" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="150" height="100"></canvas>
+                <canvas id="gaugeChartEffort" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="100" height="50"></canvas>
                 <div style="z-index: 2">Effort</div>
             </div>
 
             <div class="skillCharts" style="text-align: center;"> <!-- display: none; -->
-                <canvas id="gaugeChartSkill" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="150" height="100"></canvas>
+                <canvas id="gaugeChartSkill" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="100" height="50"></canvas>
                 <div style="z-index: 2">Skill</div>
             </div>
             <div class="efficiencyCharts" style="text-align: center;"><!-- display: none; -->
-                <canvas id="gaugeChartEfficiency" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="150" height="100"></canvas>
+                <canvas id="gaugeChartEfficiency" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="100" height="50"></canvas>
                 <div style="z-index: 2">Efficiency</div>
             </div>
             <div class="ciCharts" style="text-align: center;display: none;"><!--  -->
-                <canvas id="gaugeChartCI" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="150" height="100"></canvas>
+                <canvas id="gaugeChartCI" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="100" height="50"></canvas>
                 <div style="z-index: 2">CI</div>
             </div>
         </div>

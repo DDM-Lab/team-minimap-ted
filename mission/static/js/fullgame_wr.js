@@ -350,8 +350,8 @@ socket.on('start game', function (msg) {
         var newOpts = {...opts};
         newOpts["staticZones"] = [
        {strokeStyle: "#88acd0", min: 0, max: 50}, // Yellow
-       {strokeStyle: "#2d74b3", min: 25, max: 50}, // Green
-        {strokeStyle: "#88acd0", min: 50, max: 100}
+       {strokeStyle: "#2d74b3", min: 25, max: 100}, // Green
+        //{strokeStyle: "#88acd0", min: 50, max: 100}
 
         ]
         console.log("Changing the skill and efficiency graphs threshold");
@@ -596,7 +596,7 @@ function checkGraphDataBoundaries(){
 
         }
 }
-console.log("VERSION 1.6.6");
+console.log("VERSION 1.6.7");
 /*
 TED GRAPHS END
 * */
