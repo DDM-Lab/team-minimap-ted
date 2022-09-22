@@ -1,8 +1,5 @@
 import sys
-import json
-import math
 import os
-import ast
 from tokenize import group
 
 import matplotlib.pyplot as plt
@@ -124,8 +121,8 @@ def check_tiles(data,player_data,type):
 
         if (x+i[0],y+i[1]) in config.extra_info[type]:
 
-            # if type == 'red_pos' and not check_red_position((x+i[0],y+i[1]), player_data['id']):
-            #     return False
+            if type == 'red_pos' and not check_red_position((x+i[0],y+i[1]), player_data['id']):
+                return False
             # if (x+i[0],y+i[1]) ==(32,31):
             #     fas=32
             return True
@@ -152,7 +149,7 @@ def check_duration(player_data,data):
     Checks if skill has been going on for too long and if so it assumes it was a mistake a stops it. 
     E.g. Player starts triaging but leaves without finsihing
     """
-    skills= ['dig_rubble','triage_green','triage_red','triage_yellow']
+    skills= ['dig_rubble','triage_green','triage_red','triage_yellow', 'inaction_red']
     for skill in skills:
 
         start_time_key = f'{skill}_start_time'
@@ -186,13 +183,15 @@ def process_event(data,player,config):
     player_data['skill_end'] = elapsed_s
     if not check_tiles(data,player_data,'door_pos'): #Checks if there is a door in an adjacent tile
         return
+    player_data['open_door_success_count']+=1
     remove_tile(data,player_data,'door_pos')#Removes corresponding door
     player_data['effort']+=config.extra_info['door_effort'] #Increases effort and engineer skill
-    player_data['dig_rubble_duration_s']+=config.extra_info['door_effort']
+    
 
   elif data['event'] == 'rubble' :
     if (elapsed_s-player_data['skill_end'])<1:#Checks if more than one second passed from previous skill
         return
+    player_data['dig_rubble_success_count']+=1
     record_skill_duration(data,'dig_rubble',player_data)
     remove_tile(data,player_data,'rubble_pos')
 
@@ -371,7 +370,7 @@ def record_location(data,player, config):
     
 
 
-def update_player_movement(data, player_data, _config):
+def update_player_movement(data, player_data, config):
     """
     Update our tracking for the player's movement. Label it exploration or
     standing as appropriate.
@@ -652,21 +651,30 @@ def compute_skills(data,msg_data, config):
 
         indv_msg['exploration'] = player_data['explore_success_count']
 
+        # if player_data['cur_role']=='medic':
+        #     indv_msg['Skill']=player_data['triage_yellow_duration_s']+player_data['triage_red_duration_s']
+        #     indv_msg['Skill']=indv_msg['Skill']/(player_data['triage_green_duration_s']+player_data['move_duration_s']+indv_msg['Skill']+0.00001)
+        #     indv_msg['Workload']=(player_data['triage_red_success_count']+player_data['triage_yellow_success_count'])/config.extra_info['max_victims']
+        # else:
+        #     indv_msg['Skill']=player_data['dig_rubble_duration_s'] + config.extra_info['movement_duration']
+        #     indv_msg['Skill']=indv_msg['Skill']/(player_data['triage_green_duration_s']+player_data['move_duration_s']+indv_msg['Skill']+0.0001)
+        #     indv_msg['Workload']= (player_data['dig_rubble_duration_s']+player_data['inaction_red_duration_s'])/(10*0.6)
+
         if player_data['cur_role']=='medic':
-            indv_msg['Skill']=player_data['triage_yellow_duration_s']+player_data['triage_red_duration_s']
-            indv_msg['Skill']=indv_msg['Skill']/(player_data['triage_green_duration_s']+player_data['move_duration_s']+indv_msg['Skill']+0.00001)
-            indv_msg['Workload']=(player_data['triage_red_success_count']+player_data['triage_yellow_success_count'])/config.extra_info['max_victims']
+            indv_msg['Skill']=player_data['triage_yellow_duration_s']+player_data['triage_red_duration_s']+player_data['speedup_duration_s']
+            indv_msg['Skill']=indv_msg['Skill']/config.extra_info['period_s']
+            indv_msg['Workload']=(player_data['triage_red_success_count']+player_data['triage_yellow_success_count']+player_data['triage_green_success_count'])/config.extra_info['max_victims']
         else:
-            indv_msg['Skill']=player_data['dig_rubble_duration_s']
-            indv_msg['Skill']=indv_msg['Skill']/(player_data['triage_green_duration_s']+player_data['move_duration_s']+indv_msg['Skill']+0.0001)
-            indv_msg['Workload']= (player_data['dig_rubble_duration_s']+player_data['inaction_red_duration_s'])/10
+            indv_msg['Skill']=player_data['dig_rubble_duration_s']+config.extra_info['door_click_duration']+player_data['inaction_red_duration_s']+player_data['speedup_duration_s']
+            indv_msg['Skill']=indv_msg['Skill']/config.extra_info['period_s']
+            indv_msg['Workload']= (player_data['dig_rubble_success_count']+player_data['open_door_success_count'])/config.extra_info['max_rubble_door']
 
         msg_data['Skill']+=indv_msg['Skill']
 
 
         # indv_msg['Workload']+= player_data['explore_success_count']/config.extra_info['max_tiles']
         # indv_msg['Workload']*=0.5
-        indv_msg['Workload'] = indv_msg['Workload']*0.7 + (player_data['explore_success_count']/config.extra_info['max_tiles'])*0.3
+        indv_msg['Workload'] = indv_msg['Workload']*0.6 + (player_data['explore_success_count']/config.extra_info['max_tiles'])*0.4
         # print(player_data['inaction_red_duration_s'])
 
         msg_data['Workload']+=indv_msg['Workload']
@@ -697,7 +705,7 @@ def compute_skills(data,msg_data, config):
 
     # Reset bookkeeping.
     reset_player_field('effort', config)
-    for skill in ('triage', 'speedup','dig_rubble', 'move_victim', 'explore','triage_red' ,'triage_yellow', 'triage_green','move','inaction_red' ):
+    for skill in ('triage', 'speedup','dig_rubble', 'move_victim', 'explore','triage_red' ,'triage_yellow', 'triage_green','move','inaction_red', 'open_door'):
         reset_player_field(f'{skill}_duration_s', config)
         reset_player_field(f'{skill}_success_count', config)
 
@@ -846,6 +854,9 @@ def ensure_player_data(player, config):
             'dig_rubble_start_time': None,
             'dig_rubble_duration_s': 0,
             'dig_rubble_success_count': 0,
+            
+            # Number of opening doors
+            'open_door_success_count': 0,
 
             # Times for digging rubble skill.
             'explore_start_time': None,
@@ -853,6 +864,7 @@ def ensure_player_data(player, config):
             'explore_success_count': 0,
 
             # Time next to red victim 
+            'inaction_red_start_time':None,
             'inaction_red_duration_s':0,
 
 
@@ -928,6 +940,7 @@ class configuration:
               'total_triage_yellow':20,
               'max_tiles':200, #Max tiles that can be covered in 10s
               'max_victims':2, #victims saved per 10s asssuming every victim is saved during the trial
+              'max_rubble_door': 9, #maximum rubble, or door or green victims saved during the trial
               'green_pos' : set(), #position (x,y) of victims
               'yellow_pos' : set(),
               'red_pos' : set(),
@@ -935,6 +948,7 @@ class configuration:
               'door_pos':set(),
               'skill_s_threshold':5, #Threshold time to reset edge cases e.g. player starts saving victim but does complete the triage
               'door_effort':1, #number of keystrokes to open door
+              'door_click_duration':0.1, #assumption that 10 clicks per second
               'rubble_effort':5, # number of keystrokes to destroy rubble
               'green_effort':10,
               'yellow_effort':20,
