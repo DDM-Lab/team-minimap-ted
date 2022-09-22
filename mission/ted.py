@@ -121,8 +121,8 @@ def check_tiles(data,player_data,type):
 
         if (x+i[0],y+i[1]) in config.extra_info[type]:
 
-            if type == 'red_pos' and not check_red_position((x+i[0],y+i[1]), player_data['id']):
-                return False
+            # if type == 'red_pos' and not check_red_position((x+i[0],y+i[1]), player_data['id']):
+            #     return False
             # if (x+i[0],y+i[1]) ==(32,31):
             #     fas=32
             return True
