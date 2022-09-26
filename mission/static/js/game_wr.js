@@ -527,11 +527,11 @@ function setupInformationPanelToggle() {
 
       if (!isInfoHidden) {
         $("#tab-panel").slideUp();
-        $(this).text("Show instructions");
+        $(this).text("Show commands");
         isInfoHidden = true;
       } else {
         $("#tab-panel").slideDown();
-        $(this).text("Hide instructions");
+        $(this).text("Hide commands");
         isInfoHidden = false;
       }
     });

@@ -133,8 +133,8 @@ def codebook (code_num):
     
 
 def process_map():
-    # df_map = pd.read_csv('mission/static/data/map_new_design.csv')
     df_map = pd.read_csv('mission/static/data/map_design_2.csv')
+    # df_map = pd.read_csv('mission/static/data/map_design_3.csv')
     new_map = pd.melt(df_map, id_vars='x/z', value_vars=[str(i) for i in range(0,95)], var_name='z', value_name='key')
     new_map = new_map.rename(columns={"x/z": "x"})
     new_map.index.name='id'
@@ -142,6 +142,7 @@ def process_map():
     new_map.columns = ['z', 'x', 'code', 'key']
     new_map.to_csv('mission/static/data/map_new.csv')
     
+# process_map()
 
 def get_map():
     csvFilePath = 'mission/static/data/map_new.csv'

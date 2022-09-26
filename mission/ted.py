@@ -368,7 +368,24 @@ def record_location(data,player, config):
     if was_exploration:
         record_skill_start(data, 'explore', player_data)
     
-
+# NGOC: Sep 26
+def check_medic_distance(data, player_id, config):
+    """
+    Checks if theres is another player next to the red victim
+    """
+    adj_tiles = [(-1,0),(1,0),(0,1),(0,-1)]
+    x = data['x']
+    y = data['y']
+    for player in config.state['players'].values():
+        if player['cur_role']=='medic' and player['id']!= player_id:
+            medic_curr =(player['last_x'],player['last_y'])
+            dx = abs(data['x'] - medic_curr[0])
+            dz = abs(data['y'] - medic_curr[1])
+            medic_dist = dx+ dz 
+            if medic_dist < config.extra_info['distance_threshold']:
+                # print('Distance less than a threshold')
+                return True
+    return False 
 
 def update_player_movement(data, player_data, config):
     """
@@ -413,10 +430,10 @@ def update_player_movement(data, player_data, config):
 
 
     for i in adj_tiles:
-        if (x+i[0],y+i[1]) in config.extra_info['red_pos']:
+        # if (x+i[0],y+i[1]) in config.extra_info['red_pos']:
+        if ((x+i[0],y+i[1]) in config.extra_info['red_pos']) and check_medic_distance(data, player_data['id'], config):
             player_data['inaction_red_duration_s']+=dt
             break
-
 
 
     # Update the position values for next step.
@@ -665,9 +682,10 @@ def compute_skills(data,msg_data, config):
             indv_msg['Skill']=indv_msg['Skill']/config.extra_info['period_s']
             indv_msg['Workload']=(player_data['triage_red_success_count']+player_data['triage_yellow_success_count']+player_data['triage_green_success_count'])/config.extra_info['max_victims']
         else:
-            indv_msg['Skill']=player_data['dig_rubble_duration_s']+config.extra_info['door_click_duration']+player_data['inaction_red_duration_s']+player_data['speedup_duration_s']
+            indv_msg['Skill']=player_data['dig_rubble_duration_s']+config.extra_info['door_click_duration']+player_data['speedup_duration_s']
             indv_msg['Skill']=indv_msg['Skill']/config.extra_info['period_s']
-            indv_msg['Workload']= (player_data['dig_rubble_success_count']+player_data['open_door_success_count'])/config.extra_info['max_rubble_door']
+            indv_msg['Workload']= (player_data['dig_rubble_duration_s']+config.extra_info['door_click_duration']+player_data['inaction_red_duration_s'])/config.extra_info['period_s']
+            
 
         msg_data['Skill']+=indv_msg['Skill']
 
@@ -947,6 +965,7 @@ class configuration:
               'rubble_pos' : set(),
               'door_pos':set(),
               'skill_s_threshold':5, #Threshold time to reset edge cases e.g. player starts saving victim but does complete the triage
+              'distance_threshold':10, #Threshold distance for an engineer to wait conditioned on the distance to medics' 
               'door_effort':1, #number of keystrokes to open door
               'door_click_duration':0.1, #assumption that 10 clicks per second
               'rubble_effort':5, # number of keystrokes to destroy rubble
