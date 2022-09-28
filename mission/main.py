@@ -413,13 +413,11 @@ async def handle_episode(sid, *args, **kwargs):
             print('End episode...', roomid_players[player_roomid[msg['pid']]])
     
     group_idx = player_roomid[msg['pid']]
-    gid = msg['gid']
-    
+    gid = msg['gid']    
     new_path = f'{DATA_DIR}/data_group_{gid}_episode_{game_over}.json'
     with open(new_path, 'w') as outfile:
         json.dump(room_data[group_idx], outfile)
         
-
 @app.sio.on('leave')
 async def on_leave(sid, *args, **kwargs):
     user_id = USER_MAP_SESSION[sid]
