@@ -414,10 +414,12 @@ async def handle_episode(sid, *args, **kwargs):
     
     group_idx = player_roomid[msg['pid']]
     gid = msg['gid']
-    with open(f'{DATA_DIR}/data_group_{gid}_episode_{game_over}.json', 'w') as outfile:
+    new_path = f'{DATA_DIR}/data_group_{gid}_episode_{game_over}.json'
+    is_file_exist = os.path.exists(DATA_DIR)
+    if is_file_exist:
+        new_path = new_path.split('.')[0]+f'_{str(int(game_over)+1)}.json'
+    with open(new_path, 'w') as outfile:
         json.dump(room_data[group_idx], outfile)
-    
-    
 
 @app.sio.on('leave')
 async def on_leave(sid, *args, **kwargs):
