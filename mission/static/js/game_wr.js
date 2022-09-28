@@ -195,7 +195,7 @@ socket.on('end_lobby', function (msg) {
     );
     $("#error-exit").show();
 
-    sleep(3000).then(() => { window.location.replace('https://cmu.ca1.qualtrics.com/jfe/form/SV_6hS2CkBKOezDtky'); });
+    sleep(3000).then(() => { window.location.replace('https://cmu.ca1.qualtrics.com/jfe/form/SV_eJRxLXNlcou3Olg'); });
 
     // Stop trying to join
     clearInterval(window.intervalID);

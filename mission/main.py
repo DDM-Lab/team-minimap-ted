@@ -536,4 +536,4 @@ async def create_game(game: schemas.GameCreate, db: Session = Depends(get_db)):
 @app.post("/completion")
 async def get_map_data():
     # return {"message": "Thank you!"}
-    return RedirectResponse(url="https://cmu.ca1.qualtrics.com/jfe/form/SV_82EQelNK9y3JhNY", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url="https://cmu.ca1.qualtrics.com/jfe/form/SV_5jbyTyysGcsPFTo", status_code=status.HTTP_303_SEE_OTHER)
