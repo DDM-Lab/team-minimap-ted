@@ -392,7 +392,8 @@ socket.on('start game', function (msg) {
   if (!isGameOver) {
     
     setInterval(getListPlayers, 100); 
-    setInterval(getTED, 10000); //call TED every 10s: 10000
+    // setInterval(getTED, 10000); //call TED every 10s: 10000
+    setInterval(getTED, 3000); //call TED every 10s: 10000
   }
 }); //end socket on 'start game'
 

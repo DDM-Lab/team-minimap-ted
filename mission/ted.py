@@ -951,20 +951,20 @@ def get_csv(map,key):
 
 class configuration:
   state={}
-  extra_info={'period_s':10,
+  extra_info={'period_s':3,
               'total_coverage_area':3369,
               'total_triage_green':20,
               'total_triage_red':20,
               'total_triage_yellow':20,
-              'max_tiles':200, #Max tiles that can be covered in 10s
-              'max_victims':2, #victims saved per 10s asssuming every victim is saved during the trial
-              'max_rubble_door': 9, #maximum rubble, or door or green victims saved during the trial
+              'max_tiles':60, #Max tiles that can be covered in 10s
+              'max_victims':1, #victims saved per 10s asssuming every victim is saved during the trial
+              'max_rubble_door': 7, #maximum rubble, or door or green victims saved during the trial
               'green_pos' : set(), #position (x,y) of victims
               'yellow_pos' : set(),
               'red_pos' : set(),
               'rubble_pos' : set(),
               'door_pos':set(),
-              'skill_s_threshold':5, #Threshold time to reset edge cases e.g. player starts saving victim but does complete the triage
+              'skill_s_threshold':3, #Threshold time to reset edge cases e.g. player starts saving victim but does complete the triage
               'distance_threshold':10, #Threshold distance for an engineer to wait conditioned on the distance to medics' 
               'door_effort':1, #number of keystrokes to open door
               'door_click_duration':0.1, #assumption that 10 clicks per second
