@@ -40,11 +40,11 @@ const episodeDisplay = document.getElementById('episode');
 const dist = 2;
 var listFoV = [];
 var listYellow = [];
-var minuteYellowDie = 3;
+var minuteYellowDie = 0;
 var secondYellowDie = 0;
 
 var listRed = [];
-var minuteRedDie = 2;
+var minuteRedDie = 3;
 var secondRedDie = 0;
 
 var iframe = document.getElementById('frame-qualtrics');
