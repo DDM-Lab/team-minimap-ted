@@ -83,7 +83,9 @@ var tedGraphs = {
             effortData :[],
             skillData :[],
             efficiencyData :[],
-            ciData :[]
+            ciData :[],
+            timeReference:[]
+
         };
 
 // waiting room
@@ -474,44 +476,134 @@ function drawGauge(ref,data, obj){
     }
 
 }
-function drawSparkline(ref,data){
-    if(tedGraphs.showSparkline && tedGraphs.showThreshold){
-        $(ref).sparkline(data, { fillColor: false,
-        //height: 70, width: 100,changeRangeMin: 0, chartRangeMax: 10,
-        normalRangeMin: 4, normalRangeMax: 8,
-            height: 70,
-            width: 100,
-      //lineColor: 'red'
-      type: 'line'
-  });
+const options = {
+      plugins: {
+    autocolors: false,
+    annotation: {
+      annotations: {
+        line1: {
+          type: 'line',
+          yMin: 50,
+          yMax: 50,
+          borderColor: 'rgb(255, 99, 132)',
+          borderWidth: 2,
+        },
+        line2: {
+          type: 'line',
+          yMin: 100,
+          yMax: 100,
+          borderColor: 'rgb(255, 99, 132)',
+          borderWidth: 2,
+        }
+      }
+    }
+  },
+  scales: {
+    x: {
+        type: 'timeseries',
+        time: {
+                    displayFormats: {
+                        second : 'mm:ss'
+                    },
+                     unit: 'second'
+        }
+    },
+    y: {
+        type: 'linear',
+        min: 0,
+        max: 100
+    }
+  }
+};
+const initialDateRef = new Date();
+
+const closestZeroMinutesDate = new Date(
+    initialDateRef.getFullYear(),
+    initialDateRef.getMonth(),
+    initialDateRef.getDate(),
+    initialDateRef.getHours(),00);
+
+
+function adjustTimeToZeroMinutes(dt){
+    const dif = dt.getTime() - initialDateRef.getTime();
+
+    let a = new Date(closestZeroMinutesDate.getTime() + dif)
+    console.log(dif);
+    console.log({a})
+    return a;
+}
+
+const config = {
+  type: 'line',
+  data: {
+    datasets: [{
+      label: 'Effort',
+      data: [{x: closestZeroMinutesDate, y : 1}],
+      fill: false,
+      borderColor: 'rgb(75, 192, 192)',
+      tension: 0.1
+    }]
+  },
+  options
+};
+
+function drawSparkline(ref,data, obj){
+    if(tedGraphs.showSparkline && tedGraphs.showThreshold) {
+        if(obj==null){
+            const ctx = document.getElementById(ref);
+            obj = new Chart(ctx, config);
+        } else {
+
+            obj.data.datasets.forEach((dataset) => {
+                const dataArray = [];
+                    for(var i=0;i<data.length; i++) {
+                         dataArray.push({x: tedGraphs.timeReference[i], y:data[i]*10})
+                    }
+                    dataset.data = dataArray;
+            });
+            obj.update();
+        }
+        return obj;
+
     } else {
         if(tedGraphs.showSparkline){
-                $(ref).sparkline(data, { fillColor: false,
-            //height: 70, changeRangeMin: 0, chartRangeMax: 10,width: 100, lineColor: 'red'
-            height: 70,
-            width: 100,
-            type: 'line'
-           });
+            if(obj==null){
+                const ctx = document.getElementById(ref);
+                obj = new Chart(ctx, config);
+            } else {
+
+                obj.data.datasets.forEach((dataset) => {
+                    const dataArray = [];
+                    for(var i=0;i<data.length; i++) {
+                         dataArray.push({x: tedGraphs.timeReference[i], y:data[i]*10})
+                    }
+
+                    dataset.data = dataArray;
+                });
+                obj.update();
+            }
+            return obj;
         }
     }
 
 }
+
 function drawGraphs(){
     if(tedGraphs.showEffort){
         tedGraphs.effortGaugeRef = drawGauge("gaugeChartEffort",tedGraphs.effortData, tedGraphs.effortGaugeRef)
-        drawSparkline("#liveChartEffort",tedGraphs.effortData);
+        tedGraphs.effortGraphRef = drawSparkline("liveChartEffort",tedGraphs.effortData, tedGraphs.effortGraphRef);
     }
     if(tedGraphs.showSkill){
       tedGraphs.skillGaugeRef = drawGauge("gaugeChartSkill",tedGraphs.skillData, tedGraphs.skillGaugeRef)
-      drawSparkline("#liveChartSkill",tedGraphs.skillData);
+      tedGraphs.skillGraphRef = drawSparkline("liveChartSkill",tedGraphs.skillData,tedGraphs.skillGraphRef);
     }
     if(tedGraphs.showEfficiency){
         tedGraphs.efficiencyGaugeRef = drawGauge("gaugeChartEfficiency",tedGraphs.efficiencyData, tedGraphs.efficiencyGaugeRef)
-        drawSparkline("#liveChartEfficiency",tedGraphs.efficiencyData);
+        tedGraphs.efficiencyGraphRef = drawSparkline("liveChartEfficiency",tedGraphs.efficiencyData, tedGraphs.efficiencyGraphRef);
     }
     if(tedGraphs.showCI){
         tedGraphs.ciGaugeRef = drawGauge("gaugeChartCI",tedGraphs.ciData, tedGraphs.ciGaugeRef)
-        drawSparkline("#liveChartCI",tedGraphs.ciData);
+        tedGraphs.ciGraphRef = drawSparkline("liveChartCI",tedGraphs.ciData,tedGraphs.ciGraphRef);
     }
 }
 
@@ -593,10 +685,10 @@ function checkGraphDataBoundaries(){
              tedGraphs.skillData = tedGraphs.skillData.slice(tedGraphs.skillData.length-30,tedGraphs.skillData.length)
              tedGraphs.efficiencyData = tedGraphs.efficiencyData.slice(tedGraphs.efficiencyData.length-30,tedGraphs.efficiencyData.length)
              tedGraphs.ciData = tedGraphs.ciData.slice(tedGraphs.ciData.length-30,tedGraphs.ciData.length)
-
+             tedGraphs.timeReference = tedGraphs.timeReference.slice(tedGraphs.timeReference.length - 30, tedGraphs.timeReference.length);
         }
 }
-console.log("VERSION 1.6.7");
+console.log("VERSION 1.7.2");
 /*
 TED GRAPHS END
 * */
@@ -628,7 +720,7 @@ socket.on('ted response', function (msg) {
         tedGraphs.skillData.push((skillValue !== undefined && !isNaN(skillValue))?(skillValue):(0))
         tedGraphs.efficiencyData.push((efficiencyValue !== undefined && !isNaN(efficiencyValue))?(efficiencyValue):(0))
         tedGraphs.ciData.push((ciValue !== undefined && !isNaN(ciValue))?(ciValue):(0));
-
+        tedGraphs.timeReference.push(adjustTimeToZeroMinutes(new Date()));
         checkGraphDataBoundaries();
         drawGraphs();
 
