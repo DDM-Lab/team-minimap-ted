@@ -59,6 +59,14 @@
     <table id="tab-panel" cellpadding="10" cellspacing="0" align="center" style="display:none; width: 1150px;">
         <tr>
             <td class="td-panel">
+                <center>
+                    <img src="{{ url_for('static', path='img/command.png')}}" style="width:85%" alt="Commands panel">
+                </center>
+            </td>
+            
+        </tr>
+        <!-- <tr>
+            <td class="td-panel">
                 Navigate: use the <b>Arrow</b> keys
             </td>
             <td class="td-panel">
@@ -85,7 +93,7 @@
             <td class="td-panel" colspan="3">
                 Rescue Red victims: Medic presses <b>Enter</b> key 20 times while Engineer is <b>adjacent</b> to the victim.
             </td>
-        </tr>
+        </tr> -->
     </table>
     <table id="tabgame" v-if="position" cellpadding="10" cellspacing="0" style="width: 900px;" align="center">
         <div id="qualtrics-container">
@@ -104,7 +112,7 @@
                         <span id="green">Greens: 0</span> |
                         <span id="yellow">Yellows: 0</span> |
                         <span id="red">Reds: 0</span> |
-                        <span id="instructionsToggle" style="border-color: gray; border-width: 2px; padding: 6px; border-style: solid;cursor:pointer;">Show instructions</span>
+                        <span id="instructionsToggle" style="border-color: gray; border-width: 2px; padding: 6px; border-style: solid;cursor:pointer;">Show commands</span>
                     </h3>
                     <div style="display: flex;align-items: center;justify-content: space-around;">
                         <div class="effortCharts" style="text-align: center;display: none;">
@@ -210,7 +218,7 @@
         <div><input id="showGraph" type="checkbox" /> Show line graph</div>
         <div><input id="showThreshold" type="checkbox" value="" disabled/> Display threshold</div>
     </div>
-    <div style="position: absolute;left: 0px;top:80px;display:none" id="graphGaugesContainer">
+    <div style="position: absolute;right: 0px;top:80px;display:none" id="graphGaugesContainer">
         <div style="display: flex;align-items: center;justify-content: space-around;flex-direction: column">
             <div style="position: absolute;top:0px;left:0px;height:100%;width:100%;background-color: black; opacity: 0.15;z-index: 1"></div>
             <div class="effortCharts" style="text-align: center;"><!-- display: none; -->

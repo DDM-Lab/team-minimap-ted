@@ -36,7 +36,10 @@ This application is undergoing development. Any suggestions and code updates/req
 
 - To run Full map (Full view of the environment) mode: `http://0.0.0.0:5702/fullmap/<uid>`, substitues an actual user id for `<uid>`. 
 
-The experimental procedure follows: Qualtrics (for instructions) -> Team Minimap [Waiting Room](-> Redirect to Qualtrics for postsurvey questions.
+The experimental procedure follows: 
+- Qualtrics (for instructions): https://cmu.ca1.qualtrics.com/jfe/form/SV_eXNoutNu5qjv2F8
+- Team Minimap [Waiting Room]
+- Redirect to Qualtrics for postsurvey questions: https://cmu.ca1.qualtrics.com/jfe/form/SV_5jbyTyysGcsPFTo
 
 ## Contact Info
 Ngoc Nguyen\

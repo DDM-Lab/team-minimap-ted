@@ -57,8 +57,16 @@
 
 <body>
     <p hidden id="ip"></p>
-    <table id="tab-panel" cellpadding="10" cellspacing="0" align="center" style="display:none">
+    <table id="tab-panel" cellpadding="10" cellspacing="0" align="center" style="display:none; width: 1150px;">
         <tr>
+            <td class="td-panel">
+                <center>
+                    <img src="{{ url_for('static', path='img/command.png')}}" style="width:85%" alt="Commands panel">
+                </center>
+            </td>
+            
+        </tr>
+        <!-- <tr>
             <td class="td-panel">
                 Navigate: use the <b>Arrow</b> keys
             </td>
@@ -86,7 +94,7 @@
             <td class="td-panel" colspan="3">
                 Rescue Red victims: Medic presses <b>Enter</b> key 20 times while Engineer is <b>adjacent</b> to the victim.
             </td>
-        </tr>
+        </tr> -->
     </table>
     <table id="tabgame" v-if="position" cellpadding="10" cellspacing="0" style="width: 900px;" align="center">
         <div id="qualtrics-container">
@@ -120,7 +128,7 @@
                             <input type="checkbox" id="map" name="map" value="show_map" onclick="showMap(this)">
                             <label for="map"> Show map</label>
                         </span>
-                        <span id="instructionsToggle" style="border-color: gray; border-width: 2px; padding: 6px; border-style: solid;cursor:pointer;">Show instructions</span>
+                        <span id="instructionsToggle" style="border-color: gray; border-width: 2px; padding: 6px; border-style: solid;cursor:pointer;">Show commands</span>
                     </h3>
                      <div style="display: flex;align-items: center;justify-content: space-around;">
                         <div class="effortCharts" style="text-align: center;display: none;">
@@ -162,7 +170,7 @@
                     <div id="sketch-holder">
                         <!-- <script src="{{ url_for('static', path='js/game.js')}}"></script>
                         <script src="{{ url_for('static', path='js/cell.js')}}"></script> -->
-                        <script src="{{ url_for('static', path='js/fullgame_wr.js?v=')}}29993411214234234287999895834823904865445"></script>
+                        <script src="{{ url_for('static', path='js/fullgame_wr.js?v=')}}4443904865445"></script>
                         <script src="{{ url_for('static', path='js/cell.js?v=')}}"></script>
                     </div>
                     
@@ -220,7 +228,7 @@
         <br/>
         <h3><span id="notification-content">You are going to move to the next episode in a few seconds.</span></h3>
     </div>
-    <div style="position: absolute; top: 10px; left : 20px;background-color:black; color: white; opacity:0.4;padding: 30px;">
+    <div style="position: absolute; top: 10px; left : 20px;background-color:black; color: white; opacity:0.4;padding: 30px;display:none">
         <div><input id="effortBox" class="typeOfGraphBox" type="checkbox"  /> Effort</div>
         <div><input id="skillBox" class="typeOfGraphBox" type="checkbox" value="" /> Skill</div>
         <div><input id="efficiencyBox"class="typeOfGraphBox"  type="checkbox" value="" /> Efficiency</div>
@@ -234,23 +242,23 @@
         <div style="display: flex;align-items: center;justify-content: space-around;flex-direction: column">
             <div style="position: relative;top:0px;left:0px;height:100%;width:100%;background-color: black; opacity: 0.15;z-index: 1"></div>
             <div class="effortCharts" style="text-align: center;"><!-- display: none; -->
-                <canvas id="gaugeChartEffort" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="100" height="50"></canvas>
+                <canvas id="gaugeChartEffort" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="150" height="50"></canvas>
                 <div style="z-index: 2"  class="graphGauge">Effort</div>
                 <canvas id="liveChartEffort" class="sparkLine" style="z-index: 2"></canvas>
             </div>
 
             <div class="skillCharts" style="text-align: center;"> <!-- display: none; -->
-                <canvas id="gaugeChartSkill" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="100" height="50"></canvas>
+                <canvas id="gaugeChartSkill" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="150" height="50"></canvas>
                 <div style="z-index: 2"  class="graphGauge">Skill</div>
                 <canvas id="liveChartSkill" class="sparkLine" style="z-index: 2"></canvas>
             </div>
             <div class="efficiencyCharts" style="text-align: center;"><!-- display: none; -->
-                <canvas id="gaugeChartEfficiency" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="100" height="50"></canvas>
+                <canvas id="gaugeChartEfficiency" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="150" height="50"></canvas>
                 <div style="z-index: 2"  class="graphGauge">Efficiency</div>
                 <canvas id="liveChartEfficiency" class="sparkLine" style="z-index: 2"></canvas>
             </div>
             <div class="ciCharts" style="text-align: center;display: none;"><!--  -->
-                <canvas id="gaugeChartCI" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="100" height="50"></canvas>
+                <canvas id="gaugeChartCI" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="150" height="50"></canvas>
                 <div style="z-index: 2" class="graphGauge">CI</div>
                 <canvas id="liveChartCI"  class="sparkLine" style="z-index: 2"></canvas>
             </div>

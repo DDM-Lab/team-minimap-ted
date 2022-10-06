@@ -40,11 +40,11 @@ const episodeDisplay = document.getElementById('episode');
 const dist = 2;
 var listFoV = [];
 var listYellow = [];
-var minuteYellowDie = 3;
+var minuteYellowDie = 0;
 var secondYellowDie = 0;
 
 var listRed = [];
-var minuteRedDie = 2;
+var minuteRedDie = 3;
 var secondRedDie = 0;
 
 var iframe = document.getElementById('frame-qualtrics');
@@ -197,7 +197,7 @@ socket.on('end_lobby', function (msg) {
     );
     $("#error-exit").show();
 
-    sleep(3000).then(() => { window.location.replace('https://cmu.ca1.qualtrics.com/jfe/form/SV_6hS2CkBKOezDtky'); });
+    sleep(3000).then(() => { window.location.replace('https://cmu.ca1.qualtrics.com/jfe/form/SV_eJRxLXNlcou3Olg'); });
 
     // Stop trying to join
     clearInterval(window.intervalID);
@@ -246,6 +246,46 @@ socket.on('waiting', function (data) {
 
 startWaitTimer();
 
+socket.on('connection response', function (msg) {
+    roomid = msg['roomid'][playerId]
+    console.log('room id', roomid)
+    groupSize = Object.keys(msg['list_players'][roomid]).length;
+
+    players = Object.keys(msg['list_players'][roomid]);
+
+    for (const [key, value] of Object.entries(msg['list_players'][roomid])) {
+      objVal = value;
+      otherX.push(Object.values(objVal)[0]);
+      otherY.push(Object.values(objVal)[1]);
+
+
+
+      roles.push(Object.values(objVal)[2]);
+      if (key == playerId) {
+        roleName = Object.values(objVal)[2];
+        // console.log("What is your role: ", roleName);
+
+        emmitSocketIO('update', { "pid": playerId, "x": Object.values(objVal)[0], "y": Object.values(objVal)[1], 'mission_time': display.textContent, 'event': '' })
+
+        groupID = parseInt(roomid);
+        const isMyIndex = (myIndex) => myIndex == playerId;
+
+        // document.getElementById('pid').innerHTML = 'Player id: ' + (players.findIndex(isMyIndex) + 1).toString() + ' | User id: ' + uid.toString();
+        // document.getElementById('other_pid').innerHTML = ' | Your role: ' + roleName.toString() + ' | Group: ' + (groupID + 1).toString();
+        if (groupID !== undefined && isFirst) {
+          var initData = {
+            "userid": uid, "group": groupID, "role": roleName, "episode": episode, "target": "", "target_pos": "",
+            "num_step": 0, "time_spent": "start", "trajectory": ""
+          };
+          writeData(initData);
+          isFirst = false;
+        }
+      }
+    }
+    getListPlayers();
+
+  });
+
 socket.on('start game', function (msg) {
   if (window.intervalID !== -1) {
     clearInterval(window.intervalID);
@@ -289,46 +329,6 @@ socket.on('start game', function (msg) {
     maxEpisode = parseInt(data["max_episode"]);
 
   }
-  socket.on('connection response', function (msg) {
-    roomid = msg['roomid'][playerId]
-    console.log('room id', roomid)
-    groupSize = Object.keys(msg['list_players'][roomid]).length;
-    
-    players = Object.keys(msg['list_players'][roomid]);
-    
-    for (const [key, value] of Object.entries(msg['list_players'][roomid])) {
-      objVal = value;
-      otherX.push(Object.values(objVal)[0]);
-      otherY.push(Object.values(objVal)[1]);
-
-      
-
-      roles.push(Object.values(objVal)[2]);
-      if (key == playerId) {
-        roleName = Object.values(objVal)[2];
-        // console.log("What is your role: ", roleName);
-
-        emmitSocketIO('update', { "pid": playerId, "x": Object.values(objVal)[0], "y": Object.values(objVal)[1], 'mission_time': display.textContent, 'event': '' })
-
-        groupID = parseInt(roomid);
-        const isMyIndex = (myIndex) => myIndex == playerId;
-        
-        // document.getElementById('pid').innerHTML = 'Player id: ' + (players.findIndex(isMyIndex) + 1).toString() + ' | User id: ' + uid.toString();
-        // document.getElementById('other_pid').innerHTML = ' | Your role: ' + roleName.toString() + ' | Group: ' + (groupID + 1).toString();
-        if (groupID !== undefined && isFirst) {
-          var initData = {
-            "userid": uid, "group": groupID, "role": roleName, "episode": episode, "target": "", "target_pos": "",
-            "num_step": 0, "time_spent": "start", "trajectory": ""
-          };
-          writeData(initData);
-          isFirst = false;
-        }
-      }
-    }
-    getListPlayers();
-
-  });
-
 
   startTimer(totalMinutes, display);
   setTimeout(gameOver, totalMinutes * 1000);
@@ -356,7 +356,7 @@ socket.on('start game', function (msg) {
         //{strokeStyle: "#88acd0", min: 50, max: 100}
 
         ]
-        console.log("Changing the skill and efficiency graphs threshold");
+        //console.log("Changing the skill and efficiency graphs threshold");
         tedGraphs.skillGaugeRef.setOptions(newOpts)
         tedGraphs.efficiencyGaugeRef.setOptions(newOpts);
 
@@ -394,7 +394,8 @@ socket.on('start game', function (msg) {
   if (!isGameOver) {
     
     setInterval(getListPlayers, 100); 
-    setInterval(getTED, 10000); //call TED every 10s: 10000
+    // setInterval(getTED, 10000); //call TED every 10s: 10000
+    setInterval(getTED, 3000); //call TED every 10s: 10000
   }
 }); //end socket on 'start game'
 
@@ -470,7 +471,7 @@ function drawGauge(ref,data, obj){
         return obj;
     } else {
         obj.set(data[data.length-1]);
-        console.log(data[data.length -1]);
+        //console.log(data[data.length -1]);
         //obj.push(data[data.length-1]/10);
         return obj
     }
@@ -528,8 +529,8 @@ function adjustTimeToZeroMinutes(dt){
     const dif = dt.getTime() - initialDateRef.getTime();
 
     let a = new Date(closestZeroMinutesDate.getTime() + dif)
-    console.log(dif);
-    console.log({a})
+    //console.log(dif);
+    //console.log({a})
     return a;
 }
 
@@ -614,11 +615,11 @@ function setupInformationPanelToggle(){
 
             if (!isInfoHidden) {
                 $("#tab-panel").slideUp();
-                $(this).text("Show instructions");
+                $(this).text("Show commands");
                 isInfoHidden = true;
             } else {
                 $("#tab-panel").slideDown();
-                $(this).text("Hide instructions");
+                $(this).text("Hide commands");
                 isInfoHidden = false;
             }
         });
@@ -697,7 +698,7 @@ getTED.calledTimes = 0;
 socket.on('ted response', function (msg) {
 
     pos_element = getTED.calledTimes;
-    console.log("GOT TED VALUES : " + pos_element +"  -  "+msg['ted_players'].length);
+    //console.log("GOT TED VALUES : " + pos_element +"  -  "+msg['ted_players'].length);
     //console.log(msg);
     var tedPlayersLength = msg['ted_players'].length -1;
 
@@ -707,11 +708,11 @@ socket.on('ted response', function (msg) {
 
 
       var effortValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Effort']), 1) * 100;
-      console.log('Effort value', effortValue);
+      //console.log('Effort value', effortValue);
       var skillValue =  min(parseFloat(msg['ted_players'][tedPlayersLength]['Skill']), 1)  * 100;
-      console.log('Skill value', skillValue);
+      //console.log('Skill value', skillValue);
       var efficiencyValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Workload']), 1) * 100;
-      console.log('Efficiency value', efficiencyValue);
+      //console.log('Efficiency value', efficiencyValue);
       var ciValue = efficiencyValue + skillValue + effortValue;
 
 

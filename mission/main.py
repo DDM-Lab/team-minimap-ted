@@ -133,8 +133,8 @@ def codebook (code_num):
     
 
 def process_map():
-    # df_map = pd.read_csv('mission/static/data/map_new_design.csv')
-    df_map = pd.read_csv('mission/static/data/map_design_2.csv')
+    # df_map = pd.read_csv('mission/static/data/map_design_2.csv')
+    df_map = pd.read_csv('mission/static/data/map_design_TED.csv')
     new_map = pd.melt(df_map, id_vars='x/z', value_vars=[str(i) for i in range(0,95)], var_name='z', value_name='key')
     new_map = new_map.rename(columns={"x/z": "x"})
     new_map.index.name='id'
@@ -142,6 +142,7 @@ def process_map():
     new_map.columns = ['z', 'x', 'code', 'key']
     new_map.to_csv('mission/static/data/map_new.csv')
     
+# process_map()
 
 def get_map():
     csvFilePath = 'mission/static/data/map_new.csv'
@@ -412,12 +413,11 @@ async def handle_episode(sid, *args, **kwargs):
             print('End episode...', roomid_players[player_roomid[msg['pid']]])
     
     group_idx = player_roomid[msg['pid']]
-    gid = msg['gid']
-    with open(f'{DATA_DIR}/data_group_{gid}_episode_{game_over}.json', 'w') as outfile:
+    gid = msg['gid']    
+    new_path = f'{DATA_DIR}/data_group_{gid}_episode_{game_over}.json'
+    with open(new_path, 'w') as outfile:
         json.dump(room_data[group_idx], outfile)
-    
-    
-
+        
 @app.sio.on('leave')
 async def on_leave(sid, *args, **kwargs):
     user_id = USER_MAP_SESSION[sid]
@@ -535,4 +535,4 @@ async def create_game(game: schemas.GameCreate, db: Session = Depends(get_db)):
 @app.post("/completion")
 async def get_map_data():
     # return {"message": "Thank you!"}
-    return RedirectResponse(url="https://cmu.ca1.qualtrics.com/jfe/form/SV_82EQelNK9y3JhNY", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url="https://cmu.ca1.qualtrics.com/jfe/form/SV_5jbyTyysGcsPFTo", status_code=status.HTTP_303_SEE_OTHER)

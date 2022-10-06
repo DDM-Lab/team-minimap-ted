@@ -40,11 +40,11 @@ const episodeDisplay = document.getElementById('episode');
 const dist = 2;
 var listFoV = [];
 var listYellow = [];
-var minuteYellowDie = 3;
+var minuteYellowDie = 0;
 var secondYellowDie = 0;
 
 var listRed = [];
-var minuteRedDie = 2;
+var minuteRedDie = 3;
 var secondRedDie = 0;
 
 var iframe = document.getElementById('frame-qualtrics');
@@ -195,7 +195,7 @@ socket.on('end_lobby', function (msg) {
     );
     $("#error-exit").show();
 
-    sleep(3000).then(() => { window.location.replace('https://cmu.ca1.qualtrics.com/jfe/form/SV_6hS2CkBKOezDtky'); });
+    sleep(3000).then(() => { window.location.replace('https://cmu.ca1.qualtrics.com/jfe/form/SV_eJRxLXNlcou3Olg'); });
 
     // Stop trying to join
     clearInterval(window.intervalID);
@@ -350,8 +350,8 @@ socket.on('start game', function (msg) {
     var newOpts = { ...opts };
     newOpts["staticZones"] = [
       { strokeStyle: "#88acd0", min: 0, max: 50 }, // Yellow
-      { strokeStyle: "#2d74b3", min: 25, max: 50 }, // Green
-      { strokeStyle: "#88acd0", min: 50, max: 100 }
+      {strokeStyle: "#2d74b3", min: 25, max: 100}, // Green
+      //{strokeStyle: "#88acd0", min: 50, max: 100}
 
     ]
     console.log("Changing the skill and efficiency graphs threshold");
@@ -394,7 +394,8 @@ socket.on('start game', function (msg) {
   if (!isGameOver) {
 
     setInterval(getListPlayers, 100);
-    setInterval(getTED, 10000); //call TED every 10s: 10000
+    // setInterval(getTED, 10000); //call TED every 10s: 10000
+    setInterval(getTED, 3000); //call TED every 10s: 10000
   }
 }); //end socket on 'start game'
 
@@ -527,11 +528,11 @@ function setupInformationPanelToggle() {
 
       if (!isInfoHidden) {
         $("#tab-panel").slideUp();
-        $(this).text("Show instructions");
+        $(this).text("Show commands");
         isInfoHidden = true;
       } else {
         $("#tab-panel").slideDown();
-        $(this).text("Hide instructions");
+        $(this).text("Hide commands");
         isInfoHidden = false;
       }
     });
