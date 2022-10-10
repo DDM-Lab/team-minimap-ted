@@ -774,38 +774,38 @@ function getListPlayers() {
     }
 }
 
-  socket.on('heartbeat', function (msg) {
-    for (var k = 0; k < players.length; k++) {
-      if (players[k] !== undefined) {
-        var pid = players[k];
-        otherX[k] = parseInt(msg[pid]['x']);
-        otherY[k] = parseInt(msg[pid]['y']);
-        roles[k] = msg[pid]['role'].toString();
-        updateEnvironment(otherX[k], otherY[k]);
-      }
+socket.on('heartbeat', function (msg) {
+  for (var k = 0; k < players.length; k++) {
+    if (players[k] !== undefined) {
+      var pid = players[k];
+      otherX[k] = parseInt(msg[pid]['x']);
+      otherY[k] = parseInt(msg[pid]['y']);
+      roles[k] = msg[pid]['role'].toString();
+      updateEnvironment(otherX[k], otherY[k]);
     }
-  });
+  }
+});
 
-  socket.on('on change', function (msg) {
-    players = Object.keys(msg['list_players']);
-    for (var k = 0; k < players.length; k++) {
-      if (players[k] !== undefined) {
-        var pid = players[k];
-        otherX[k] = parseInt(msg['list_players'][pid]['x']);
-        otherY[k] = parseInt(msg['list_players'][pid]['y']);
-        // roles[k] = msg['list_players'][roomid][pid]['role'].toString();
-        updateEnvironment(otherX[k], otherY[k]);
-        updateScoreBoard(msg['score']['green'], msg['score']['yellow'], msg['score']['red']);
-      }
+socket.on('on change', function (msg) {
+  players = Object.keys(msg['list_players']);
+  for (var k = 0; k < players.length; k++) {
+    if (players[k] !== undefined) {
+      var pid = players[k];
+      otherX[k] = parseInt(msg['list_players'][pid]['x']);
+      otherY[k] = parseInt(msg['list_players'][pid]['y']);
+      // roles[k] = msg['list_players'][roomid][pid]['role'].toString();
+      updateEnvironment(otherX[k], otherY[k]);
+      updateScoreBoard(msg['score']['green'], msg['score']['yellow'], msg['score']['red']);
     }
-  });
+  }
+});
 
-  socket.on('leave', function (msg) {
-    var idx = players.indexOf(msg['pid'])
-    if (idx != -1) {
-      delete players[idx];
-    }
-  });
+socket.on("leave", function (msg) {
+  var idx = players.indexOf(msg["pid"]);
+  if (idx != -1) {
+    delete players[idx];
+  }
+});
 //end getListPlayer
 
 function updateScoreBoard(green, yellow, red) {

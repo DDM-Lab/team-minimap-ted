@@ -244,6 +244,46 @@ socket.on('waiting', function (data) {
 
 startWaitTimer();
 
+socket.on('connection response', function (msg) {
+  roomid = msg['roomid'][playerId]
+  console.log('room id', roomid)
+  groupSize = Object.keys(msg['list_players'][roomid]).length;
+
+  players = Object.keys(msg['list_players'][roomid]);
+
+  for (const [key, value] of Object.entries(msg['list_players'][roomid])) {
+    objVal = value;
+    otherX.push(Object.values(objVal)[0]);
+    otherY.push(Object.values(objVal)[1]);
+
+
+
+    roles.push(Object.values(objVal)[2]);
+    if (key == playerId) {
+      roleName = Object.values(objVal)[2];
+      // console.log("What is your role: ", roleName);
+
+      emmitSocketIO('update', { "pid": playerId, "x": Object.values(objVal)[0], "y": Object.values(objVal)[1], 'mission_time': display.textContent, 'event': '' })
+
+      groupID = parseInt(roomid);
+      const isMyIndex = (myIndex) => myIndex == playerId;
+
+      // document.getElementById('pid').innerHTML = 'Player id: ' + (players.findIndex(isMyIndex) + 1).toString() + ' | User id: ' + uid.toString();
+      // document.getElementById('other_pid').innerHTML = ' | Your role: ' + roleName.toString() + ' | Group: ' + (groupID + 1).toString();
+      if (groupID !== undefined && isFirst) {
+        var initData = {
+          "userid": uid, "group": groupID, "role": roleName, "episode": episode, "target": "", "target_pos": "",
+          "num_step": 0, "time_spent": "start", "trajectory": ""
+        };
+        writeData(initData);
+        isFirst = false;
+      }
+    }
+  }
+  getListPlayers();
+
+});
+
 socket.on('start game', function (msg) {
   if (window.intervalID !== -1) {
     clearInterval(window.intervalID);
@@ -287,45 +327,7 @@ socket.on('start game', function (msg) {
     maxEpisode = parseInt(data["max_episode"]);
 
   }
-  socket.on('connection response', function (msg) {
-    roomid = msg['roomid'][playerId]
-    console.log('room id', roomid)
-    groupSize = Object.keys(msg['list_players'][roomid]).length;
-
-    players = Object.keys(msg['list_players'][roomid]);
-
-    for (const [key, value] of Object.entries(msg['list_players'][roomid])) {
-      objVal = value;
-      otherX.push(Object.values(objVal)[0]);
-      otherY.push(Object.values(objVal)[1]);
-
-
-
-      roles.push(Object.values(objVal)[2]);
-      if (key == playerId) {
-        roleName = Object.values(objVal)[2];
-        // console.log("What is your role: ", roleName);
-
-        emmitSocketIO('update', { "pid": playerId, "x": Object.values(objVal)[0], "y": Object.values(objVal)[1], 'mission_time': display.textContent, 'event': '' })
-
-        groupID = parseInt(roomid);
-        const isMyIndex = (myIndex) => myIndex == playerId;
-
-        // document.getElementById('pid').innerHTML = 'Player id: ' + (players.findIndex(isMyIndex) + 1).toString() + ' | User id: ' + uid.toString();
-        // document.getElementById('other_pid').innerHTML = ' | Your role: ' + roleName.toString() + ' | Group: ' + (groupID + 1).toString();
-        if (groupID !== undefined && isFirst) {
-          var initData = {
-            "userid": uid, "group": groupID, "role": roleName, "episode": episode, "target": "", "target_pos": "",
-            "num_step": 0, "time_spent": "start", "trajectory": ""
-          };
-          writeData(initData);
-          isFirst = false;
-        }
-      }
-    }
-    getListPlayers();
-
-  });
+  
 
 
   startTimer(totalMinutes, display);
