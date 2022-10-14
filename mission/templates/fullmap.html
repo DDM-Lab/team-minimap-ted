@@ -51,6 +51,25 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/style.css')}}">
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+   <script
+  src="https://browser.sentry-cdn.com/7.15.0/bundle.tracing.min.js"
+  integrity="sha384-skDdPkdiECE8otf9rbWXqVqnroCJqPpFKjcjwdnnHD03cyVgxJxW9nJKq7uFEpld"
+  crossorigin="anonymous"
+></script>
+
+    <script>
+                Sentry.init({
+          dsn: "https://c342aa0a27384e57b676355e782a3f59@o4503981495484416.ingest.sentry.io/4503981503741952",
+          // this assumes your build process replaces `process.env.npm_package_version` with a value
+          release: "teamminimap@",
+          integrations: [new Sentry.BrowserTracing()],
+
+          // We recommend adjusting this value in production, or using tracesSampler
+          // for finer control
+          tracesSampleRate: 1.0,
+        });
+    </script>
+
     <title>Team Minimap</title>
 
 </head>
@@ -170,7 +189,7 @@
                     <div id="sketch-holder">
                         <!-- <script src="{{ url_for('static', path='js/game.js')}}"></script>
                         <script src="{{ url_for('static', path='js/cell.js')}}"></script> -->
-                        <script src="{{ url_for('static', path='js/fullgame_wr.js?v=')}}4443904865445"></script>
+                        <script src="{{ url_for('static', path='js/fullgame_wr.js?v=')}}8372128333904865445"></script>
                         <script src="{{ url_for('static', path='js/cell.js?v=')}}"></script>
                     </div>
                     

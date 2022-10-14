@@ -689,7 +689,7 @@ function checkGraphDataBoundaries(){
              tedGraphs.timeReference = tedGraphs.timeReference.slice(tedGraphs.timeReference.length - 30, tedGraphs.timeReference.length);
         }
 }
-console.log("VERSION 1.7.2");
+console.log("VERSION 1.8.1");
 /*
 TED GRAPHS END
 * */
@@ -820,27 +820,27 @@ function updateScoreBoard(green, yellow, red) {
 }
 
 function updateEnvironment(loc_x, loc_y) {
-  if (grid[loc_x][loc_y].goal == 'yellow') {
+  if (grid[loc_x]&&grid[loc_x][loc_y]?.goal == 'yellow') {
     grid[loc_x][loc_y].goal = "";
     emmitSocketIO('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'yellow' })
   }
-  else if (grid[loc_x][loc_y].goal == 'green') {
+  else if (grid[loc_x]&& grid[loc_x][loc_y]?.goal == 'green') {
     grid[loc_x][loc_y].goal = "";
     emmitSocketIO('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'green' })
   }
 
-  else if (grid[loc_x][loc_y].goal == 'red') {
+  else if (grid[loc_x] && grid[loc_x][loc_y]?.goal == 'red') {
     grid[loc_x][loc_y].goal = "";
     emmitSocketIO('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'red' })
   }
 
-  else if (grid[loc_x][loc_y].goal == 'door') {
+  else if (grid[loc_x] && grid[loc_x][loc_y]?.goal == 'door') {
     console.log('Hit door...');
     grid[loc_x][loc_y].goal = ''
 
     emmitSocketIO('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'door' })
   }
-  else if (grid[loc_x][loc_y].goal == 'rubble') {
+  else if (grid[loc_x] && grid[loc_x][loc_y]?.goal == 'rubble') {
     grid[loc_x][loc_y].goal = ''
     emmitSocketIO('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'rubble' })
   }
