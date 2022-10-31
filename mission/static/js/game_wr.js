@@ -474,7 +474,7 @@ function drawGauge(ref, data, obj) {
     return obj;
   } else {
     obj.set(data[data.length - 1]);
-    console.log(data[data.length - 1]);
+    //console.log(data[data.length - 1]);
     //obj.push(data[data.length-1]/10);
     return obj
   }
@@ -613,7 +613,7 @@ getTED.calledTimes = 0;
 socket.on('ted response', function (msg) {
 
   pos_element = getTED.calledTimes;
-  console.log("GOT TED VALUES : " + pos_element + "  -  " + msg['ted_players'].length);
+  //console.log("GOT TED VALUES : " + pos_element + "  -  " + msg['ted_players'].length);
   //console.log(msg);
   var tedPlayersLength = msg['ted_players'].length - 1;
 
@@ -623,11 +623,11 @@ socket.on('ted response', function (msg) {
 
 
     var effortValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Effort']), 1) * 100;
-    console.log('Effort value', effortValue);
+    //console.log('Effort value', effortValue);
     var skillValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Skill']), 1) * 100;
-    console.log('Skill value', skillValue);
+    //console.log('Skill value', skillValue);
     var efficiencyValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Workload']), 1) * 100;
-    console.log('Efficiency value', efficiencyValue);
+    //console.log('Efficiency value', efficiencyValue);
     var ciValue = efficiencyValue + skillValue + effortValue;
 
 
@@ -735,6 +735,7 @@ function updateScoreBoard(green, yellow, red) {
 }
 
 function updateEnvironment(loc_x, loc_y) {
+
   if (grid[loc_x][loc_y].goal == 'yellow') {
     grid[loc_x][loc_y].goal = "";
     emmitSocketIO('periodic call', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': 'yellow' })
@@ -777,6 +778,7 @@ function generateGrid(data) {
       listRed.push([posX, posY]);
     }
     else if (type == "agent") {
+      console.log(" >>> " + posX + " - " + posY);
       agentX = posX;
       agentY = posY;
       agentDirX = 0;
@@ -1166,16 +1168,21 @@ function checkBoundary(paraX, paraY) {
       }
 
     }
-    if (agentX != paraX || agentY != paraY) {
-      agentDirX = agentX - paraX
-      agentDirY = agentY - paraY
-      agentX = paraX;
-      agentY = paraY;
-      numSteps += 1;
-      targetSteps += 1;
-      traces.push("(" + agentX + "," + agentY + ")");
-      listFoV = [];
-    }
+    if (paraX !== undefined && paraY !== undefined) {
+      if (agentX != paraX || agentY != paraY) {
+        agentDirX = agentX - paraX
+        agentDirY = agentY - paraY
+        agentX = paraX;
+        agentY = paraY;
+
+        numSteps += 1;
+        targetSteps += 1;
+        console.log(">> " + paraX + "- " + paraY);
+
+        traces.push("(" + agentX + "," + agentY + ")");
+        listFoV = [];
+      }
+   }
   }
   emmitSocketIO('update', { "pid": playerId, "x": agentX, "y": agentY, 'mission_time': display.textContent, 'event': '' })
 }

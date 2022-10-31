@@ -862,6 +862,7 @@ function generateGrid(data) {
       listRed.push([posX, posY]);
     }
     else if (type == "agent") {
+        console.log(" >>> " + posX + " - " + posY);
       agentX = posX;
       agentY = posY;
       agentDirX = 0;
@@ -1260,6 +1261,7 @@ function checkBoundary(paraX, paraY) {
       agentY = paraY;
       numSteps += 1;
       targetSteps += 1;
+      console.log(">> " + paraX + "- " + paraY);
       traces.push("(" + agentX + "," + agentY + ")");
       listFoV = [];
     }
