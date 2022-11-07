@@ -303,8 +303,8 @@ socket.on('start game', function (msg) {
   $('#tabgame').show();
   $('#lobby').hide();
 
-  $("#graphGaugesContainer").show();
-  initializeTEDGraph();
+  //$("#graphGaugesContainer").show();
+  //initializeTEDGraph();
 
   getMap();
 
@@ -605,7 +605,7 @@ function checkGraphDataBoundaries() {
 
   }
 }
-console.log("VERSION 1.9.1");
+console.log("VERSION 1.10.1");
 /*
 TED GRAPHS END
 * */
