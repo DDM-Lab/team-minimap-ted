@@ -76,14 +76,14 @@ var tedGraphs = {
             showSkill : true,
             showEfficiency: true,
             showCI : false,
-            showGauge: true,
-            showSparkline: false,
-            showThreshold : false,
+            showGauge: false,
+            showSparkline: true,
+            showThreshold : true,
 
-            effortData :[],
-            skillData :[],
-            efficiencyData :[],
-            ciData :[],
+            effortData :[0,0,0,0,0,0,0,0,0,0],
+            skillData :[0,0,0,0,0,0,0,0,0,0],
+            efficiencyData :[0,0,0,0,0,0,0,0,0,0],
+            ciData :[0,0,0,0,0,0,0,0,0,0],
             timeReference:[]
 
         };
@@ -479,44 +479,84 @@ function drawGauge(ref,data, obj){
 }
 const options = {
       plugins: {
-    autocolors: false,
-    annotation: {
-      annotations: {
-        line1: {
-          type: 'line',
-          yMin: 50,
-          yMax: 50,
-          borderColor: 'rgb(255, 99, 132)',
-          borderWidth: 2,
+        autocolors: false,
+        annotation: {
+          annotations: {
+            line1: {
+              type: 'line',
+              yMin: 50,
+              yMax: 50,
+              borderColor: 'rgb(255, 99, 132)',
+              borderWidth: 2,
+            },
+            line2: {
+              type: 'line',
+              yMin: 100,
+              yMax: 100,
+              borderColor: 'rgb(255, 99, 132)',
+              borderWidth: 2,
+            }
+          }
         },
-        line2: {
-          type: 'line',
-          yMin: 100,
-          yMax: 100,
-          borderColor: 'rgb(255, 99, 132)',
-          borderWidth: 2,
+        customCanvasBackgroundColor: {
+            color: 'rgba(0,0,0,0.4)'
+        },
+           legend: {
+        labels: {
+          color: "white",  // not 'fontColor:' anymore
+          // fontSize: 18  // not 'fontSize:' anymore
+          font: {
+            size: 18 // 'size' now within object 'font {}'
+          }
         }
       }
-    }
   },
   scales: {
     x: {
-        type: 'timeseries',
+        type: 'timeseries',//timeseries
         time: {
-                    displayFormats: {
-                        second : 'mm:ss'
-                    },
-                     unit: 'second'
+            displayFormats: {
+                second : 'mm:ss'
+            },
+             unit: 'second'
+        },
+        grid: {
+          color: "#ffffff",
+        },
+        ticks: {
+          color: "#ffffff", // this here
         }
     },
     y: {
         type: 'linear',
         min: 0,
-        max: 100
-    }
+        max: 100,
+        grid: {
+          color: "#ffffff",
+        },
+        ticks: {
+          color: "#ffffff", // this here
+        }
+    },
+
   }
 };
+const plugin = {
+  id: 'customCanvasBackgroundColor',
+  beforeDraw: (chart, args, options) => {
+    const {ctx} = chart;
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = options.color || '#99ffff';
+    ctx.fillRect(0, 0, chart.width, chart.height);
+    ctx.restore();
+  }
+};
+
+Chart.register(plugin);
+
 const initialDateRef = new Date();
+
 
 const closestZeroMinutesDate = new Date(
     initialDateRef.getFullYear(),
@@ -534,11 +574,20 @@ function adjustTimeToZeroMinutes(dt){
     return a;
 }
 
-const config = {
+for(var i=0;i<10;i++){
+    tedGraphs.timeReference.push(adjustTimeToZeroMinutes(new Date()));
+
+}
+
+
+function drawSparkline(ref,data, obj){
+    let labelRef = ref.replace("liveChart","");
+    const config = {
   type: 'line',
   data: {
     datasets: [{
-      label: 'Effort',
+      label: labelRef,
+      backgroundColor: "rgba(159,170,174,0.8)",
       data: [{x: closestZeroMinutesDate, y : 1}],
       fill: false,
       borderColor: 'rgb(75, 192, 192)',
@@ -548,7 +597,6 @@ const config = {
   options
 };
 
-function drawSparkline(ref,data, obj){
     if(tedGraphs.showSparkline && tedGraphs.showThreshold) {
         if(obj==null){
             const ctx = document.getElementById(ref);
@@ -591,19 +639,27 @@ function drawSparkline(ref,data, obj){
 
 function drawGraphs(){
     if(tedGraphs.showEffort){
-        tedGraphs.effortGaugeRef = drawGauge("gaugeChartEffort",tedGraphs.effortData, tedGraphs.effortGaugeRef)
+        if(tedGraphs.showGauge) {
+            tedGraphs.effortGaugeRef = drawGauge("gaugeChartEffort", tedGraphs.effortData, tedGraphs.effortGaugeRef)
+        }
         tedGraphs.effortGraphRef = drawSparkline("liveChartEffort",tedGraphs.effortData, tedGraphs.effortGraphRef);
     }
     if(tedGraphs.showSkill){
-      tedGraphs.skillGaugeRef = drawGauge("gaugeChartSkill",tedGraphs.skillData, tedGraphs.skillGaugeRef)
+        if(tedGraphs.showGauge) {
+            tedGraphs.skillGaugeRef = drawGauge("gaugeChartSkill", tedGraphs.skillData, tedGraphs.skillGaugeRef)
+        }
       tedGraphs.skillGraphRef = drawSparkline("liveChartSkill",tedGraphs.skillData,tedGraphs.skillGraphRef);
     }
     if(tedGraphs.showEfficiency){
-        tedGraphs.efficiencyGaugeRef = drawGauge("gaugeChartEfficiency",tedGraphs.efficiencyData, tedGraphs.efficiencyGaugeRef)
+        if(tedGraphs.showGauge) {
+            tedGraphs.efficiencyGaugeRef = drawGauge("gaugeChartEfficiency", tedGraphs.efficiencyData, tedGraphs.efficiencyGaugeRef)
+        }
         tedGraphs.efficiencyGraphRef = drawSparkline("liveChartEfficiency",tedGraphs.efficiencyData, tedGraphs.efficiencyGraphRef);
     }
     if(tedGraphs.showCI){
-        tedGraphs.ciGaugeRef = drawGauge("gaugeChartCI",tedGraphs.ciData, tedGraphs.ciGaugeRef)
+        if(tedGraphs.showGauge) {
+            tedGraphs.ciGaugeRef = drawGauge("gaugeChartCI", tedGraphs.ciData, tedGraphs.ciGaugeRef)
+        }
         tedGraphs.ciGraphRef = drawSparkline("liveChartCI",tedGraphs.ciData,tedGraphs.ciGraphRef);
     }
 }
@@ -680,16 +736,16 @@ function initializeTEDGraph(){
   drawGraphs();//to auto start the graphs
 }
 function checkGraphDataBoundaries(){
-     if (tedGraphs.effortData.length > 30){
+     if (tedGraphs.effortData.length > 10){
             //clean up data.
-             tedGraphs.effortData = tedGraphs.effortData.slice(tedGraphs.effortData.length-30,tedGraphs.effortData.length)
-             tedGraphs.skillData = tedGraphs.skillData.slice(tedGraphs.skillData.length-30,tedGraphs.skillData.length)
-             tedGraphs.efficiencyData = tedGraphs.efficiencyData.slice(tedGraphs.efficiencyData.length-30,tedGraphs.efficiencyData.length)
-             tedGraphs.ciData = tedGraphs.ciData.slice(tedGraphs.ciData.length-30,tedGraphs.ciData.length)
-             tedGraphs.timeReference = tedGraphs.timeReference.slice(tedGraphs.timeReference.length - 30, tedGraphs.timeReference.length);
+             tedGraphs.effortData = tedGraphs.effortData.slice(tedGraphs.effortData.length-10,tedGraphs.effortData.length)
+             tedGraphs.skillData = tedGraphs.skillData.slice(tedGraphs.skillData.length-10,tedGraphs.skillData.length)
+             tedGraphs.efficiencyData = tedGraphs.efficiencyData.slice(tedGraphs.efficiencyData.length-10,tedGraphs.efficiencyData.length)
+             tedGraphs.ciData = tedGraphs.ciData.slice(tedGraphs.ciData.length-10,tedGraphs.ciData.length)
+             tedGraphs.timeReference = tedGraphs.timeReference.slice(tedGraphs.timeReference.length - 10, tedGraphs.timeReference.length);
         }
 }
-console.log("VERSION 1.8.1");
+console.log("VERSION 1.10.3");
 /*
 TED GRAPHS END
 * */
@@ -707,23 +763,24 @@ socket.on('ted response', function (msg) {
         Object.keys(msg['ted_players'][tedPlayersLength]).length > 0) {
 
 
-      var effortValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Effort']), 1) * 100;
-      //console.log('Effort value', effortValue);
-      var skillValue =  min(parseFloat(msg['ted_players'][tedPlayersLength]['Skill']), 1)  * 100;
-      //console.log('Skill value', skillValue);
-      var efficiencyValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Workload']), 1) * 100;
-      //console.log('Efficiency value', efficiencyValue);
-      var ciValue = efficiencyValue + skillValue + effortValue;
+        if(pos_element % 4 ==0) {
+            var effortValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Effort']), 1) * 100;
+            //console.log('Effort value', effortValue);
+            var skillValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Skill']), 1) * 100;
+            //console.log('Skill value', skillValue);
+            var efficiencyValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Workload']), 1) * 100;
+            //console.log('Efficiency value', efficiencyValue);
+            var ciValue = efficiencyValue + skillValue + effortValue;
 
 
-
-        tedGraphs.effortData.push((effortValue !== undefined && !isNaN(effortValue))?(effortValue):(0))
-        tedGraphs.skillData.push((skillValue !== undefined && !isNaN(skillValue))?(skillValue):(0))
-        tedGraphs.efficiencyData.push((efficiencyValue !== undefined && !isNaN(efficiencyValue))?(efficiencyValue):(0))
-        tedGraphs.ciData.push((ciValue !== undefined && !isNaN(ciValue))?(ciValue):(0));
-        tedGraphs.timeReference.push(adjustTimeToZeroMinutes(new Date()));
-        checkGraphDataBoundaries();
-        drawGraphs();
+            tedGraphs.effortData.push((effortValue !== undefined && !isNaN(effortValue)) ? (effortValue) : (0))
+            tedGraphs.skillData.push((skillValue !== undefined && !isNaN(skillValue)) ? (skillValue) : (0))
+            tedGraphs.efficiencyData.push((efficiencyValue !== undefined && !isNaN(efficiencyValue)) ? (efficiencyValue) : (0))
+            tedGraphs.ciData.push((ciValue !== undefined && !isNaN(ciValue)) ? (ciValue) : (0));
+            tedGraphs.timeReference.push(adjustTimeToZeroMinutes(new Date()));
+            checkGraphDataBoundaries();
+            drawGraphs();
+        }
 
       //console.log("Effort: ", msg['ted_players'][pos_element]['process_effort_s']);
       //effortHis.push(msg['ted_players'][pos_element]['process_effort_s'])

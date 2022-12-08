@@ -18,7 +18,12 @@
     <!-- <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script> -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/jquery-sparkline@2.4.0/jquery.sparkline.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.0.1/chartjs-plugin-annotation.min.js" integrity="sha512-LZEOcU8s74hwWva82MJux7GgFNjfeExXG9yZPQrKz567Od4O2D/6UX3oGoZiRDOdbMtH33NBq7vonH4VOUPA/Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
     <style>
         svg+svg {
             margin-left: 20px;
@@ -46,6 +51,10 @@
             height: 100%;
             width: 100%;
             overflow: hidden;
+        }
+        .sparkLine{
+          margin: 6px;
+          heigh: 100px;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gauge.js/1.3.7/gauge.min.js"
@@ -146,22 +155,22 @@
                         <div class="effortCharts" style="text-align: center;display: none;">
                             {# <canvas id="gaugeChartEffort" class="epoch gauge-tiny graphGauge"></canvas>#}
                             {# <span>Effort</span>#}
-                            <div id="liveChartEffort" class="sparkLine"></div>
+{#                            <div id="liveChartEffort" class="sparkLine"></div>#}
                         </div>
                         <div class="skillCharts" style="text-align: center;display: none;">
                             {# <canvas id="gaugeChartSkill" class="epoch gauge-tiny graphGauge"></canvas>#}
                             {# <span>Skill</span>#}
-                            <div id="liveChartSkill" class="sparkLine"></div>
+{#                            <div id="liveChartSkill" class="sparkLine"></div>#}
                         </div>
                         <div class="efficiencyCharts" style="text-align: center;display: none;">
                             {# <canvas id="gaugeChartEfficiency" class="epoch gauge-tiny graphGauge"></canvas>#}
                             {# <span>Efficiency</span>#}
-                            <div id="liveChartEfficiency" class="sparkLine"></div>
+{#                            <div id="liveChartEfficiency" class="sparkLine"></div>#}
                         </div>
                         <div class="ciCharts" style="text-align: center;display: none;">
                             {# <canvas id="gaugeChartCI" class="epoch gauge-tiny graphGauge"></canvas>#}
                             {# <span>CI</span>#}
-                            <div id="liveChartCI" class="sparkLine"></div>
+{#                            <div id="liveChartCI" class="sparkLine"></div>#}
                         </div>
                     </div>
 
@@ -179,7 +188,7 @@
                     <input type="hidden" id="group" name="group" value={{group}} />
 
                     <div id="sketch-holder">
-                        <script src="{{ url_for('static', path='js/game_wr.js?v=')}}8372128333904865445" +DateTime.Now.Ticks></script>
+                        <script src="{{ url_for('static', path='js/game_wr.js?v=')}}5627844198492128333904865445" +DateTime.Now.Ticks></script>
                         <script src="{{ url_for('static', path='js/cell.js?v=')}}" +DateTime.Now.Ticks></script>
                     </div>
                     <div align="center">
@@ -246,39 +255,43 @@
         <div><input id="efficiencyBox" class="typeOfGraphBox" type="checkbox" value="" /> Efficiency</div>
         <div><input id="ciBox" class="typeOfGraphBox" type="checkbox" value="" /> CI</div>
         <div>Display config</div>
-        <div><input id="showGauge" type="checkbox" checked /> Show Gauge</div>
-        <div><input id="showGraph" type="checkbox" /> Show line graph</div>
-        <div><input id="showThreshold" type="checkbox" value="" disabled /> Display threshold</div>
+        <div><input id="showGauge" type="checkbox" /> Show Gauge</div>
+        <div><input id="showGraph" type="checkbox" checked /> Show line graph</div>
+        <div><input id="showThreshold" type="checkbox" value="" checked /> Display threshold</div>
     </div>
     <div style="position: absolute;right: 0px;top:80px;display:none" id="graphGaugesContainer">
         <div style="display: flex;align-items: center;justify-content: space-around;flex-direction: column">
-            <div
-                style="position: absolute;top:0px;left:0px;height:100%;width:100%;background-color: black; opacity: 0.15;z-index: 1">
-            </div>
+{#            <div#}
+{#                style="position: absolute;top:0px;left:0px;height:100%;width:100%;background-color: black; opacity: 0.15;z-index: 1">#}
+{#            </div>#}
             <div class="effortCharts" style="text-align: center;">
                 <!-- display: none; -->
-                <canvas id="gaugeChartEffort" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="150"
-                    height="100"></canvas>
-                <div style="z-index: 2">Effort</div>
+{#                <canvas id="gaugeChartEffort" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="150"#}
+{#                    height="100"></canvas>#}
+{#                <div style="z-index: 2">Effort</div>#}
+                <canvas id="liveChartEffort" class="sparkLine" style="z-index: 2"></canvas>
             </div>
 
             <div class="skillCharts" style="text-align: center;">
                 <!-- display: none; -->
-                <canvas id="gaugeChartSkill" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="150"
-                    height="100"></canvas>
-                <div style="z-index: 2">Skill</div>
+{#                <canvas id="gaugeChartSkill" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="150"#}
+{#                    height="100"></canvas>#}
+{#                <div style="z-index: 2">Skill</div>#}
+                <canvas id="liveChartSkill" class="sparkLine" style="z-index: 2"></canvas>
             </div>
             <div class="efficiencyCharts" style="text-align: center;">
                 <!-- display: none; -->
-                <canvas id="gaugeChartEfficiency" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="150"
-                    height="100"></canvas>
-                <div style="z-index: 2">Efficiency</div>
+{#                <canvas id="gaugeChartEfficiency" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="150"#}
+{#                    height="100"></canvas>#}
+{#                <div style="z-index: 2">Efficiency</div>#}
+                <canvas id="liveChartEfficiency" class="sparkLine" style="z-index: 2"></canvas>
             </div>
             <div class="ciCharts" style="text-align: center;display: none;">
                 <!--  -->
-                <canvas id="gaugeChartCI" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="150"
-                    height="100"></canvas>
-                <div style="z-index: 2">CI</div>
+{#                <canvas id="gaugeChartCI" class="epoch gauge-tiny graphGauge" style="z-index: 2" width="150"#}
+{#                    height="100"></canvas>#}
+{#                <div style="z-index: 2">CI</div>#}
+                <canvas id="liveChartCI"  class="sparkLine" style="z-index: 2"></canvas>
             </div>
         </div>
     </div>
