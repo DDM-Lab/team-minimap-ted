@@ -555,7 +555,7 @@ const plugin = {
 
 Chart.register(plugin);
 
-const initialDateRef = new Date();
+
 
 
 const closestZeroMinutesDate = new Date(
@@ -574,9 +574,10 @@ function adjustTimeToZeroMinutes(dt){
     return a;
 }
 
+let fixedTimeInterval = 3*1000;
+let initialDate = new Date(new Date().getTime()- 10*fixedTimeInterval);
 for(var i=0;i<10;i++){
-    tedGraphs.timeReference.push(adjustTimeToZeroMinutes(new Date()));
-
+    tedGraphs.timeReference.push(adjustTimeToZeroMinutes(new Date(initialDate + i*fixedTimeInterval)));
 }
 
 
@@ -777,7 +778,8 @@ socket.on('ted response', function (msg) {
             tedGraphs.skillData.push((skillValue !== undefined && !isNaN(skillValue)) ? (skillValue) : (0))
             tedGraphs.efficiencyData.push((efficiencyValue !== undefined && !isNaN(efficiencyValue)) ? (efficiencyValue) : (0))
             tedGraphs.ciData.push((ciValue !== undefined && !isNaN(ciValue)) ? (ciValue) : (0));
-            tedGraphs.timeReference.push(adjustTimeToZeroMinutes(new Date()));
+            tedGraphs.timeReference.push(adjustTimeToZeroMinutes(new Date(
+          tedGraphs.timeReference[tedGraphs.timeReference.length -1 ].getTime()+fixedTimeInterval)));
             checkGraphDataBoundaries();
             drawGraphs();
         }
