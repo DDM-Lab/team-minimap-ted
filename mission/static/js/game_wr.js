@@ -572,15 +572,15 @@ const closestZeroMinutesDate = new Date(
 function adjustTimeToZeroMinutes(dt){
     const dif = dt.getTime() - initialDateRef.getTime();
 
-    let a = new Date(closestZeroMinutesDate.getTime() + dif)
+    let a = new Date()
+    a.setTime(closestZeroMinutesDate.getTime() + dif);
     //console.log(dif);
     //console.log({a})
     return a;
 }
-let fixedTimeInterval = 3*1000;
-let initialDate = new Date(new Date().getTime()- 10*fixedTimeInterval);
+
 for(var i=0;i<10;i++){
-    tedGraphs.timeReference.push(adjustTimeToZeroMinutes(new Date(initialDate + i*fixedTimeInterval)));
+    tedGraphs.timeReference.push(adjustTimeToZeroMinutes(new Date()));
 
 }
 function drawSparkline(ref,data, obj){
@@ -748,7 +748,7 @@ function checkGraphDataBoundaries() {
 
   }
 }
-console.log("VERSION 1.10.3");
+console.log("VERSION 1.10.7");
 /*
 TED GRAPHS END
 * */
@@ -781,8 +781,9 @@ socket.on('ted response', function (msg) {
       tedGraphs.skillData.push((skillValue !== undefined && !isNaN(skillValue)) ? (skillValue) : (0))
       tedGraphs.efficiencyData.push((efficiencyValue !== undefined && !isNaN(efficiencyValue)) ? (efficiencyValue) : (0))
       tedGraphs.ciData.push((ciValue !== undefined && !isNaN(ciValue)) ? (ciValue) : (0));
-      tedGraphs.timeReference.push(adjustTimeToZeroMinutes(new Date(
-          tedGraphs.timeReference[tedGraphs.timeReference.length -1 ].getTime()+fixedTimeInterval)));
+      const dt = new Date();
+      dt.setTime(tedGraphs.timeReference[tedGraphs.timeReference.length -1 ].getTime() + 3*1000);
+      tedGraphs.timeReference.push(dt);
 
       checkGraphDataBoundaries();
       drawGraphs();
