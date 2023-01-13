@@ -477,6 +477,24 @@ function drawGauge(ref,data, obj){
     }
 
 }
+
+let widthz, heightz, gradient;
+function getGradient(ctx, chartArea) {
+  const chartWidth = chartArea.right - chartArea.left;
+  const chartHeight = chartArea.bottom - chartArea.top;
+  if (!gradient || widthz !== chartWidth || heightz !== chartHeight) {
+    // Create the gradient because this is either the first render
+    // or the size of the chart has changed
+    widthz = chartWidth;
+    heightz = chartHeight;
+    gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+    gradient.addColorStop(0, 'rgb(255, 99, 132)');
+    gradient.addColorStop(0.5, 'rgb(255, 205, 86)');
+    gradient.addColorStop(1, 'green');
+  }
+
+  return gradient;
+}
 const options = {
       plugins: {
         autocolors: false,
@@ -486,30 +504,26 @@ const options = {
               type: 'line',
               yMin: 50,
               yMax: 50,
-              borderColor: 'rgb(255, 99, 132)',
+              borderColor: 'rgb(0, 0, 0)',
               borderWidth: 2,
-            },
+              borderDashOffset : 0,
+              borderDash: [5,7]
+            }/*,
             line2: {
               type: 'line',
               yMin: 100,
               yMax: 100,
               borderColor: 'rgb(255, 99, 132)',
               borderWidth: 2,
-            }
+            }*/
           }
         },
-        customCanvasBackgroundColor: {
+        /*customCanvasBackgroundColor: {
             color: 'rgba(0,0,0,0.4)'
-        },
-           legend: {
-        labels: {
-          color: "white",  // not 'fontColor:' anymore
-          // fontSize: 18  // not 'fontSize:' anymore
-          font: {
-            size: 18 // 'size' now within object 'font {}'
-          }
+        },*/
+       legend: {
+                display: false
         }
-      }
   },
   scales: {
     x: {
@@ -522,25 +536,38 @@ const options = {
         },
         grid: {
           color: "#ffffff",
+             display:false
         },
         ticks: {
           color: "#ffffff", // this here
+             display:false
         }
     },
     y: {
         type: 'linear',
         min: 0,
         max: 100,
+        position: 'right',
         grid: {
           color: "#ffffff",
-        },
-        ticks: {
-          color: "#ffffff", // this here
+            display:false,
+            borderColor: function(context) {
+                const chart = context.chart;
+                const {ctx, chartArea} = chart;
+
+                if (!chartArea) {
+                  // This case happens on initial chart load
+                  return;
+                }
+                return getGradient(ctx, chartArea);
+            },
+            borderWidth: 5
         }
     },
 
   }
 };
+/*
 const plugin = {
   id: 'customCanvasBackgroundColor',
   beforeDraw: (chart, args, options) => {
@@ -554,6 +581,8 @@ const plugin = {
 };
 
 Chart.register(plugin);
+
+ */
 
 const initialDateRef = new Date();
 
@@ -590,8 +619,10 @@ function drawSparkline(ref,data, obj){
       backgroundColor: "rgba(159,170,174,0.8)",
       data: [{x: closestZeroMinutesDate, y : 1}],
       fill: false,
-      borderColor: 'rgb(75, 192, 192)',
-      tension: 0.1
+      borderColor: "rgba(55,109,192,1)",
+      pointBorderColor: "rgba(55,109,192,1)",
+      pointBackgroundColor: "rgba(55,109,192,1)",//"#fff",
+      tension: 0.5
     }]
   },
   options
