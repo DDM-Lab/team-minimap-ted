@@ -640,7 +640,7 @@ function drawSparkline(ref,data, obj){
             obj.data.datasets.forEach((dataset) => {
                 const dataArray = [];
                     for(var i=0;i<data.length; i++) {
-                         dataArray.push({x: tedGraphs.timeReference[i], y:data[i]*10})
+                         dataArray.push({x: tedGraphs.timeReference[i], y:data[i]})//*10
                     }
                     dataset.data = dataArray;
             });
@@ -768,18 +768,19 @@ function initializeTEDGraph() {
   });
   drawGraphs();//to auto start the graphs
 }
+const NUMBER_OF_POINTS = 15;
 function checkGraphDataBoundaries() {
-  if (tedGraphs.effortData.length > 10) {
+  if (tedGraphs.effortData.length > NUMBER_OF_POINTS) {
     //clean up data.
-    tedGraphs.effortData = tedGraphs.effortData.slice(tedGraphs.effortData.length - 10, tedGraphs.effortData.length)
-    tedGraphs.skillData = tedGraphs.skillData.slice(tedGraphs.skillData.length - 10, tedGraphs.skillData.length)
-    tedGraphs.efficiencyData = tedGraphs.efficiencyData.slice(tedGraphs.efficiencyData.length - 10, tedGraphs.efficiencyData.length)
-    tedGraphs.ciData = tedGraphs.ciData.slice(tedGraphs.ciData.length - 10, tedGraphs.ciData.length)
-    tedGraphs.timeReference = tedGraphs.timeReference.slice(tedGraphs.timeReference.length - 10, tedGraphs.timeReference.length);
+    tedGraphs.effortData = tedGraphs.effortData.slice(tedGraphs.effortData.length - NUMBER_OF_POINTS, tedGraphs.effortData.length)
+    tedGraphs.skillData = tedGraphs.skillData.slice(tedGraphs.skillData.length - NUMBER_OF_POINTS, tedGraphs.skillData.length)
+    tedGraphs.efficiencyData = tedGraphs.efficiencyData.slice(tedGraphs.efficiencyData.length - NUMBER_OF_POINTS, tedGraphs.efficiencyData.length)
+    tedGraphs.ciData = tedGraphs.ciData.slice(tedGraphs.ciData.length - NUMBER_OF_POINTS, tedGraphs.ciData.length)
+    tedGraphs.timeReference = tedGraphs.timeReference.slice(tedGraphs.timeReference.length - NUMBER_OF_POINTS, tedGraphs.timeReference.length);
 
   }
 }
-console.log("VERSION 1.10.7");
+console.log("VERSION 1.11.9");
 /*
 TED GRAPHS END
 * */
@@ -797,18 +798,18 @@ socket.on('ted response', function (msg) {
     Object.keys(msg['ted_players'][tedPlayersLength]).length > 0) {
 
 
-    var effortValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Effort']), 1) * 100;
-    //console.log('Effort value', effortValue);
-    var skillValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Skill']), 1) * 100;
+    var effortValue = parseFloat(msg['ted_players'][tedPlayersLength]['Effort']) * 1000;
+    console.log('Effort value', effortValue);
+    var skillValue = parseFloat(msg['ted_players'][tedPlayersLength]['Skill']) * 1000;
     //console.log('Skill value', skillValue);
-    var efficiencyValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Workload']), 1) * 100;
+    var efficiencyValue = parseFloat(msg['ted_players'][tedPlayersLength]['Workload']) * 1000;
     //console.log('Efficiency value', efficiencyValue);
     var ciValue = efficiencyValue + skillValue + effortValue;
 
 
     if(pos_element % 4 == 0) {
 
-      tedGraphs.effortData.push((effortValue !== undefined && !isNaN(effortValue)) ? (effortValue) : (0))
+      tedGraphs.effortData.push((effortValue !== undefined && !isNaN(effortValue)) ? ((effortValue>100)?(100):(effortValue)) : (0))
       tedGraphs.skillData.push((skillValue !== undefined && !isNaN(skillValue)) ? (skillValue) : (0))
       tedGraphs.efficiencyData.push((efficiencyValue !== undefined && !isNaN(efficiencyValue)) ? (efficiencyValue) : (0))
       tedGraphs.ciData.push((ciValue !== undefined && !isNaN(ciValue)) ? (ciValue) : (0));
