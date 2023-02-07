@@ -768,7 +768,7 @@ function initializeTEDGraph() {
   });
   drawGraphs();//to auto start the graphs
 }
-const NUMBER_OF_POINTS = 15;
+const NUMBER_OF_POINTS = 10;
 function checkGraphDataBoundaries() {
   if (tedGraphs.effortData.length > NUMBER_OF_POINTS) {
     //clean up data.
@@ -780,7 +780,7 @@ function checkGraphDataBoundaries() {
 
   }
 }
-console.log("VERSION 1.11.9");
+console.log("VERSION 1.11.10");
 /*
 TED GRAPHS END
 * */
