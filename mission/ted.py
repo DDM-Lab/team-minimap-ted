@@ -448,7 +448,6 @@ def publish_ac_result(data, config):
 	Prepares the score information and publishes a message on the bus.
 	"""
 	msg_data = prepare_ac_msg_data(data , config)
-	print(msg_data["Effort"])
 	config.state['msg_data'].append(msg_data)
 
 	# Round the scores to a reasonable amount of precision.
@@ -617,7 +616,7 @@ def compute_skills(data,msg_data, config):
 		if player_data['dig_rubble_start_time']:
 			flag_rubble=1
 
-		indv_msg['Effort']=player_data['effort'] / (config.extra_info['max_tiles'] )
+		indv_msg['Effort']=player_data['effort'] / (config.extra_info['max_tiles'])
 
 		indv_msg['Effort'] = min(indv_msg['Effort'] - 0.0 / (0.85 - 0), 1)
 
