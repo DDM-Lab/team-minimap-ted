@@ -616,7 +616,11 @@ def compute_skills(data,msg_data, config):
 		if player_data['dig_rubble_start_time']:
 			flag_rubble=1
 
-		indv_msg['Effort']=player_data['effort']/ (config.extra_info['max_tiles'] + config.extra_info['red_effort'])
+		indv_msg['Effort']=player_data['effort'] / (config.extra_info['max_tiles'])
+
+		indv_msg['Effort'] = min(indv_msg['Effort'] - 0.0 / (0.85 - 0), 1)
+
+
 		msg_data['Effort']+=indv_msg['Effort']
 
 		record_skill_duration(data,'dig_rubble',player_data)
