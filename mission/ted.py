@@ -38,6 +38,7 @@ def initialize_state(config):
 		# For the process_..._agg values.
 		'players_deltas': [],
 		'efforts': [],
+		'points': [],
 		'skill_uses': [],
 		'workloads': [],
 
@@ -227,6 +228,7 @@ def process_event(data,player,config):
 
 		player_data['skill_end'] = elapsed_s
 		player_data['effort']+=config.extra_info['green_effort']
+		player_data['points'] += 10
 
 	elif data['event'] == 'yellow' :
 		if (elapsed_s-player_data['skill_end'])<1:
@@ -236,6 +238,7 @@ def process_event(data,player,config):
 		record_skill_duration(data, "triage_yellow", player_data)
 		player_data['skill_end'] = elapsed_s
 		remove_tile(data,player_data,'yellow_pos')
+		player_data['points'] += 20
 
 	elif data['event'] == 'red' :
 		if (elapsed_s-player_data['skill_end'])<1:
@@ -244,6 +247,8 @@ def process_event(data,player,config):
 		player_data['triage_red_success_count']+=1
 		record_skill_duration(data, "triage_red", player_data)
 		player_data['skill_end'] = elapsed_s
+		player_data['points'] += 30
+
 		
 		remove_tile(data,player_data,'red_pos')
 
@@ -573,6 +578,7 @@ def compute_skills(data,msg_data, config):
 	elapsed_s = msg_data['elapsed_s']
 
 	# Initialize the values to 0, we will add to them below.
+	msg_data['points'] = 0
 	msg_data['Effort'] = 0
 	msg_data['move'] = 0
 	msg_data['Skill'] = 0
@@ -616,12 +622,10 @@ def compute_skills(data,msg_data, config):
 		if player_data['dig_rubble_start_time']:
 			flag_rubble=1
 
-		indv_msg['Effort']=player_data['effort'] / (config.extra_info['max_tiles'])
+		indv_msg['Effort'] = player_data['effort'] / (config.extra_info['max_tiles'])
+		msg_data['Effort'] += indv_msg['Effort']
 
-		indv_msg['Effort'] = min(indv_msg['Effort'] - 0.0 / (0.85 - 0), 1)
-
-
-		msg_data['Effort']+=indv_msg['Effort']
+		msg_data['points'] += player_data['points']
 
 		record_skill_duration(data,'dig_rubble',player_data)
 		record_skill_duration(data,'triage_green',player_data)
@@ -638,7 +642,6 @@ def compute_skills(data,msg_data, config):
 			record_skill_start(data,'triage_yellow',player_data)
 		if flag_triage_red == 1:
 			record_skill_start(data,'triage_red',player_data)
-
 
 		if flag_rubble == 1:
 			record_skill_start(data,'dig_rubble',player_data)
@@ -721,6 +724,7 @@ def compute_skills(data,msg_data, config):
 
 	# Reset bookkeeping.
 	reset_player_field('effort', config)
+	reset_player_field('points', config)
 	for skill in ('triage', 'speedup','dig_rubble', 'move_victim', 'explore','triage_red' ,'triage_yellow', 'triage_green','move','inaction_red', 'open_door'):
 		reset_player_field(f'{skill}_duration_s', config)
 		reset_player_field(f'{skill}_success_count', config)
@@ -762,9 +766,11 @@ def compute_process_values(msg_data, config):
 	config.state['skill_uses'].append(msg_data['Skill']/num_players)
 
 	msg_data['Effort'] = msg_data['Effort']/num_players
+	msg_data['Effort'] = min(msg_data['Effort'] - 0.0 / (0.85 - 0), 1)
+
+	msg_data['points'] = min(msg_data['points']/100., 1)  # scale to be between [0, 1], set max at 1.
 	config.state['efforts'].append(msg_data['Effort'])
-
-
+	config.state['points'].append(msg_data['points'])
 
 	msg_data['Workload'] =  msg_data['Workload']/num_players
 
@@ -849,6 +855,7 @@ def ensure_player_data(player, config):
 			'inaction_stand_s': 0,
 
 			'effort':0,
+			'points': 0,
 
 			# Time the player started triaging. Only set *while* the player is
 			# actively triaging.
