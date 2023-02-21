@@ -689,7 +689,7 @@ function drawGraphs() {
   }
   if(!tedGraphs.showSparkline && tedGraphs.showEffort){
     let rescue = tedGraphs.effortData[tedGraphs.effortData.length -1];
-    document.getElementById('goal').innerHTML = 'Effort: ' + rescue.toString();
+    document.getElementById('effort').innerHTML = 'Effort: ' + rescue.toString();
   }
   if(!tedGraphs.showSparkline && tedGraphs.showScore){
     let rescue = tedGraphs.scoreData[tedGraphs.scoreData.length -1];
@@ -938,7 +938,7 @@ function updateScoreBoard(green, yellow, red) {
   numRescuedYellow = yellow;
   numRescuedRed = red;
 
-  //  document.getElementById('goal').innerHTML = 'Points: ' + rescue.toString();
+  document.getElementById('goal').innerHTML = 'Points: ' + rescue.toString();
 
   document.getElementById('green').innerHTML = 'Green: ' + numRescuedGreen.toString();
   document.getElementById('yellow').innerHTML = 'Yellow: ' + numRescuedYellow.toString();
