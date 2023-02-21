@@ -689,6 +689,7 @@ function drawGraphs() {
   }
   if(!tedGraphs.showSparkline && tedGraphs.showEffort){
     let rescue = tedGraphs.effortData[tedGraphs.effortData.length -1];
+
     document.getElementById('effort').innerHTML = 'Effort: ' + rescue.toString();
   }
   if(!tedGraphs.showSparkline && tedGraphs.showScore){
@@ -786,6 +787,7 @@ function initializeTEDGraph() {
   //     drawGraphs();
   //   });
   // });
+  if(!tedGraphs.showSparkline && tedGraphs.showEffort){$('#effort').show();}
   drawGraphs();//to auto start the graphs
 }
 const NUMBER_OF_POINTS = 10;
