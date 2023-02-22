@@ -647,7 +647,7 @@ function drawSparkline(ref,data, obj){
             obj.data.datasets.forEach((dataset) => {
                 const dataArray = [];
                     for(var i=0;i<data.length; i++) {
-                         dataArray.push({x: tedGraphs.timeReference[i], y:data[i]})//*10
+                         dataArray.push({x: tedGraphs.timeReference[i], y:data[i]*10})//*10
                     }
                     dataset.data = dataArray;
             });
