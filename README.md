@@ -32,7 +32,7 @@ This application is undergoing development. Any suggestions and code updates/req
 
 ## Testing
 2 visibility modes: 
-- To run FoV (Field of View) mode: `http://0.0.0.0:5702/fov/<uid>`: substitues an actual user id for `<uid>`, e.g. [http://0.0.0.0:5702/fov/ngoc].
+- To run FoV (Field of View) mode: `http://0.0.0.0:5702/fov/<uid>`: substitutes an actual user id for `<uid>`, e.g. [http://0.0.0.0:5702/fov/ngoc].
 
 - To run Full map (Full view of the environment) mode: `http://0.0.0.0:5702/fullmap/<uid>`, substitues an actual user id for `<uid>`. 
 

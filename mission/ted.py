@@ -767,6 +767,7 @@ def compute_process_values(msg_data, config):
 
 	msg_data['Effort'] = msg_data['Effort']/num_players
 	msg_data['Effort'] = min(msg_data['Effort'] - 0.0 / (0.85 - 0), 1)
+	print(msg_data["Effort"])
 
 	msg_data['points'] = min(msg_data['points']/100., 1)  # scale to be between [0, 1], set max at 1.
 	config.state['efforts'].append(msg_data['Effort'])
