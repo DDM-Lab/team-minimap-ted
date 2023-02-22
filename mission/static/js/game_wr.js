@@ -72,15 +72,22 @@ var intervalEmitSocket;
 let socketIOBuffer = [];
 let effortHis = [], skillHis = [], efficiencyHis = [];
 var tedGraphs = {
-  showEffort: true,
-  showSkill: true,
-  showEfficiency: true,
+  showEffort: true,//one or the other
+  showScore : false,
+  showSparkline: true,
+
+
+  showSkill: false,
+  showEfficiency: false,
   showCI: false,
   showGauge: false,
-  showSparkline: true,
+
   showThreshold: true,
 
+
+
   effortData :[0,0,0,0,0,0,0,0,0,0],
+  scoreData :[0,0,0,0,0,0,0,0,0,0],
   skillData :[0,0,0,0,0,0,0,0,0,0],
   efficiencyData :[0,0,0,0,0,0,0,0,0,0],
   ciData :[0,0,0,0,0,0,0,0,0,0],
@@ -640,7 +647,7 @@ function drawSparkline(ref,data, obj){
             obj.data.datasets.forEach((dataset) => {
                 const dataArray = [];
                     for(var i=0;i<data.length; i++) {
-                         dataArray.push({x: tedGraphs.timeReference[i], y:data[i]*10})
+                         dataArray.push({x: tedGraphs.timeReference[i], y:data[i]})//*10
                     }
                     dataset.data = dataArray;
             });
@@ -658,7 +665,7 @@ function drawSparkline(ref,data, obj){
                 obj.data.datasets.forEach((dataset) => {
                     const dataArray = [];
                     for(var i=0;i<data.length; i++) {
-                         dataArray.push({x: tedGraphs.timeReference[i], y:data[i]*10})
+                         dataArray.push({x: tedGraphs.timeReference[i], y:data[i]})
                     }
 
                     dataset.data = dataArray;
@@ -671,12 +678,25 @@ function drawSparkline(ref,data, obj){
 
 }
 function drawGraphs() {
-  if (tedGraphs.showEffort) {
-    if(tedGraphs.showGauge) {
+  if (tedGraphs.showEffort && tedGraphs.showSparkline) {
+    /*if(tedGraphs.showGauge) {
       tedGraphs.effortGaugeRef = drawGauge("gaugeChartEffort", tedGraphs.effortData, tedGraphs.effortGaugeRef)
-    }
+    }*/
     tedGraphs.effortGraphRef = drawSparkline("liveChartEffort",tedGraphs.effortData, tedGraphs.effortGraphRef);
   }
+  if(tedGraphs.showScore && tedGraphs.showSparkline){
+    tedGraphs.scoreGraphRef = drawSparkline("liveChartScore",tedGraphs.scoreData, tedGraphs.scoreGraphRef);
+  }
+  if(!tedGraphs.showSparkline && tedGraphs.showEffort){
+    let rescue = tedGraphs.effortData[tedGraphs.effortData.length -1];
+
+    document.getElementById('effort').innerHTML = 'Effort: ' + rescue.toString();
+  }
+  if(!tedGraphs.showSparkline && tedGraphs.showScore){
+    let rescue = tedGraphs.scoreData[tedGraphs.scoreData.length -1];
+    document.getElementById('goal').innerHTML = 'Points: ' + rescue.toString();
+  }
+  /*
   if (tedGraphs.showSkill) {
     if(tedGraphs.showGauge) {
       tedGraphs.skillGaugeRef = drawGauge("gaugeChartSkill", tedGraphs.skillData, tedGraphs.skillGaugeRef)
@@ -695,6 +715,7 @@ function drawGraphs() {
     }
     tedGraphs.ciGraphRef = drawSparkline("liveChartCI",tedGraphs.ciData,tedGraphs.ciGraphRef);
   }
+   */
 }
 
 var isInfoHidden = true;
@@ -723,63 +744,68 @@ function hideTEDGraphs() {
 }
 setupInformationPanelToggle();
 function initializeTEDGraph() {
-  $(function () {
+  // $(function () {
 
-    $("#effortBox").click(function (e) {
-      if (checkNumberOfBoxes()) { e.stopPropagation(); e.preventDefault(); return false; }
-      $(".effortCharts").toggle(this.checked);
-      tedGraphs.showEffort = this.checked;
-      drawGraphs();
-    });
-    $("#skillBox").click(function (e) {
-      if (checkNumberOfBoxes()) { e.stopPropagation(); e.preventDefault(); return false; }
-      $(".skillCharts").toggle(this.checked);
-      tedGraphs.showSkill = this.checked;
-      drawGraphs();
-    });
-    $("#efficiencyBox").click(function (e) {
-      if (checkNumberOfBoxes()) { e.stopPropagation(); e.preventDefault(); return false; }
-      $(".efficiencyCharts").toggle(this.checked);
-      tedGraphs.showEfficiency = this.checked;
-      drawGraphs();
-    });
-    $("#ciBox").click(function (e) {
-      if (checkNumberOfBoxes()) { e.stopPropagation(); e.preventDefault(); return false; }
-      $(".ciCharts").toggle(this.checked);
-      tedGraphs.showCI = this.checked;
-      drawGraphs();
-    });
-
-    $("#showGauge").click(function (e) {
-      $(".graphGauge").toggle(this.checked);
-      tedGraphs.showGauge = this.checked;
-      drawGraphs();
-    });
-    $("#showGraph").click(function (e) {
-      $(".sparkLine").toggle(this.checked);
-      $("#showThreshold").prop("disabled", !this.checked);
-      tedGraphs.showSparkline = this.checked;
-      drawGraphs();
-    });
-    $("#showThreshold").click(function (e) {
-      tedGraphs.showThreshold = this.checked;
-      drawGraphs();
-    });
-  });
+  //   $("#effortBox").click(function (e) {
+  //     if (checkNumberOfBoxes()) { e.stopPropagation(); e.preventDefault(); return false; }
+  //     $(".effortCharts").toggle(this.checked);
+  //     tedGraphs.showEffort = this.checked;
+  //     drawGraphs();
+  //   });
+  //   $("#skillBox").click(function (e) {
+  //     if (checkNumberOfBoxes()) { e.stopPropagation(); e.preventDefault(); return false; }
+  //     $(".skillCharts").toggle(this.checked);
+  //     tedGraphs.showSkill = this.checked;
+  //     drawGraphs();
+  //   });
+  //   $("#efficiencyBox").click(function (e) {
+  //     if (checkNumberOfBoxes()) { e.stopPropagation(); e.preventDefault(); return false; }
+  //     $(".efficiencyCharts").toggle(this.checked);
+  //     tedGraphs.showEfficiency = this.checked;
+  //     drawGraphs();
+  //   });
+  //   $("#ciBox").click(function (e) {
+  //     if (checkNumberOfBoxes()) { e.stopPropagation(); e.preventDefault(); return false; }
+  //     $(".ciCharts").toggle(this.checked);
+  //     tedGraphs.showCI = this.checked;
+  //     drawGraphs();
+  //   });
+  //
+  //   $("#showGauge").click(function (e) {
+  //     $(".graphGauge").toggle(this.checked);
+  //     tedGraphs.showGauge = this.checked;
+  //     drawGraphs();
+  //   });
+  //   $("#showGraph").click(function (e) {
+  //     $(".sparkLine").toggle(this.checked);
+  //     $("#showThreshold").prop("disabled", !this.checked);
+  //     tedGraphs.showSparkline = this.checked;
+  //     drawGraphs();
+  //   });
+  //   $("#showThreshold").click(function (e) {
+  //     tedGraphs.showThreshold = this.checked;
+  //     drawGraphs();
+  //   });
+  // });
+  if(!tedGraphs.showSparkline && tedGraphs.showEffort){$('#effort').show();}
   drawGraphs();//to auto start the graphs
 }
+const NUMBER_OF_POINTS = 10;
 function checkGraphDataBoundaries() {
-  if (tedGraphs.effortData.length > 10) {
+  if (tedGraphs.effortData.length > NUMBER_OF_POINTS) {
     //clean up data.
-    tedGraphs.effortData = tedGraphs.effortData.slice(tedGraphs.effortData.length - 10, tedGraphs.effortData.length)
-    tedGraphs.skillData = tedGraphs.skillData.slice(tedGraphs.skillData.length - 10, tedGraphs.skillData.length)
-    tedGraphs.efficiencyData = tedGraphs.efficiencyData.slice(tedGraphs.efficiencyData.length - 10, tedGraphs.efficiencyData.length)
-    tedGraphs.ciData = tedGraphs.ciData.slice(tedGraphs.ciData.length - 10, tedGraphs.ciData.length)
-    tedGraphs.timeReference = tedGraphs.timeReference.slice(tedGraphs.timeReference.length - 10, tedGraphs.timeReference.length);
+    tedGraphs.effortData = tedGraphs.effortData.slice(tedGraphs.effortData.length - NUMBER_OF_POINTS, tedGraphs.effortData.length)
+    tedGraphs.scoreData =  tedGraphs.scoreData.slice(tedGraphs.scoreData.length - NUMBER_OF_POINTS, tedGraphs.scoreData.length)
+
+    /*tedGraphs.skillData = tedGraphs.skillData.slice(tedGraphs.skillData.length - NUMBER_OF_POINTS, tedGraphs.skillData.length)
+    tedGraphs.efficiencyData = tedGraphs.efficiencyData.slice(tedGraphs.efficiencyData.length - NUMBER_OF_POINTS, tedGraphs.efficiencyData.length)
+    tedGraphs.ciData = tedGraphs.ciData.slice(tedGraphs.ciData.length - NUMBER_OF_POINTS, tedGraphs.ciData.length)*/
+
+    tedGraphs.timeReference = tedGraphs.timeReference.slice(tedGraphs.timeReference.length - NUMBER_OF_POINTS, tedGraphs.timeReference.length);
 
   }
 }
-console.log("VERSION 1.10.7");
+console.log("VERSION 1.13.1");
 /*
 TED GRAPHS END
 * */
@@ -797,21 +823,25 @@ socket.on('ted response', function (msg) {
     Object.keys(msg['ted_players'][tedPlayersLength]).length > 0) {
 
 
-    var effortValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Effort']), 1) * 100;
+    var effortValue = parseFloat(msg['ted_players'][tedPlayersLength]['Effort']) * 100;
+
+    var pointsValue = parseFloat(['ted_players'][tedPlayersLength]['points']) * 100;
     //console.log('Effort value', effortValue);
-    var skillValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Skill']), 1) * 100;
+
+    /*var skillValue = parseFloat(msg['ted_players'][tedPlayersLength]['Skill']) * 1000;
     //console.log('Skill value', skillValue);
-    var efficiencyValue = min(parseFloat(msg['ted_players'][tedPlayersLength]['Workload']), 1) * 100;
+    var efficiencyValue = parseFloat(msg['ted_players'][tedPlayersLength]['Workload']) * 1000;
     //console.log('Efficiency value', efficiencyValue);
-    var ciValue = efficiencyValue + skillValue + effortValue;
+    var ciValue = efficiencyValue + skillValue + effortValue;*/
 
 
     if(pos_element % 4 == 0) {
 
-      tedGraphs.effortData.push((effortValue !== undefined && !isNaN(effortValue)) ? (effortValue) : (0))
-      tedGraphs.skillData.push((skillValue !== undefined && !isNaN(skillValue)) ? (skillValue) : (0))
-      tedGraphs.efficiencyData.push((efficiencyValue !== undefined && !isNaN(efficiencyValue)) ? (efficiencyValue) : (0))
-      tedGraphs.ciData.push((ciValue !== undefined && !isNaN(ciValue)) ? (ciValue) : (0));
+      tedGraphs.effortData.push((effortValue !== undefined && !isNaN(effortValue)) ? ((effortValue>100)?(100):(effortValue)) : (0))
+      tedGraphs.scoreData.push((pointsValue !== undefined && !isNaN(pointsValue)) ? ((pointsValue>100)?(100):(pointsValue)) : (0))
+      //tedGraphs.skillData.push((skillValue !== undefined && !isNaN(skillValue)) ? (skillValue) : (0))
+      //tedGraphs.efficiencyData.push((efficiencyValue !== undefined && !isNaN(efficiencyValue)) ? (efficiencyValue) : (0))
+      //tedGraphs.ciData.push((ciValue !== undefined && !isNaN(ciValue)) ? (ciValue) : (0));
       const dt = new Date();
       dt.setTime(tedGraphs.timeReference[tedGraphs.timeReference.length -1 ].getTime() + 3*1000);
       tedGraphs.timeReference.push(dt);
@@ -845,9 +875,10 @@ socket.on('ted response', function (msg) {
     //console.log("Hmm: ", msg['ted_players'][pos_element]);
     effortHis.push(0)
     tedGraphs.effortData.push(0)
-    tedGraphs.skillData.push(0)
-    tedGraphs.efficiencyData.push(0)
-    tedGraphs.ciData.push(0);
+    tedGraphs.scoreData.push(0)
+    //tedGraphs.skillData.push(0)
+    //tedGraphs.efficiencyData.push(0)
+    //tedGraphs.ciData.push(0);
     checkGraphDataBoundaries();
   }
 
@@ -908,10 +939,14 @@ function updateScoreBoard(green, yellow, red) {
   numRescuedGreen = green;
   numRescuedYellow = yellow;
   numRescuedRed = red;
+
   document.getElementById('goal').innerHTML = 'Points: ' + rescue.toString();
+
   document.getElementById('green').innerHTML = 'Green: ' + numRescuedGreen.toString();
   document.getElementById('yellow').innerHTML = 'Yellow: ' + numRescuedYellow.toString();
   document.getElementById('red').innerHTML = 'Red: ' + numRescuedRed.toString();
+  tedGraphs.scoreData.push(rescue);
+
 }
 
 function updateEnvironment(loc_x, loc_y) {
