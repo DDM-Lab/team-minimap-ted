@@ -203,7 +203,7 @@ socket.on('end_lobby', function (msg) {
     );
     $("#error-exit").show();
 
-    sleep(3000).then(() => { window.location.replace('https://cmu.ca1.qualtrics.com/jfe/form/SV_eJRxLXNlcou3Olg'); });
+    sleep(3000).then(() => { window.location.replace('https://cmu.ca1.qualtrics.com/jfe/form/SV_6tGzYZRSZrjK2PQ'); });
 
     // Stop trying to join
     clearInterval(window.intervalID);
@@ -795,7 +795,7 @@ function checkGraphDataBoundaries() {
   if (tedGraphs.effortData.length > NUMBER_OF_POINTS) {
     //clean up data.
     tedGraphs.effortData = tedGraphs.effortData.slice(tedGraphs.effortData.length - NUMBER_OF_POINTS, tedGraphs.effortData.length)
-    tedGraphs.scoreData =  tedGraphs.scoreData.slice(tedGraphs.scoreData.length - NUMBER_OF_POINTS, tedGraphs.scoreData.length)
+    //tedGraphs.scoreData =  tedGraphs.scoreData.slice(tedGraphs.scoreData.length - NUMBER_OF_POINTS, tedGraphs.scoreData.length)
 
     /*tedGraphs.skillData = tedGraphs.skillData.slice(tedGraphs.skillData.length - NUMBER_OF_POINTS, tedGraphs.skillData.length)
     tedGraphs.efficiencyData = tedGraphs.efficiencyData.slice(tedGraphs.efficiencyData.length - NUMBER_OF_POINTS, tedGraphs.efficiencyData.length)
@@ -805,7 +805,7 @@ function checkGraphDataBoundaries() {
 
   }
 }
-console.log("VERSION 1.13.1");
+console.log("VERSION 1.13.2");
 /*
 TED GRAPHS END
 * */
@@ -822,10 +822,10 @@ socket.on('ted response', function (msg) {
     msg['ted_players'][tedPlayersLength] != null &&
     Object.keys(msg['ted_players'][tedPlayersLength]).length > 0) {
 
-
+    console.log(msg['ted_players'][tedPlayersLength]);
     var effortValue = parseFloat(msg['ted_players'][tedPlayersLength]['Effort']) * 100;
 
-    var pointsValue = parseFloat(['ted_players'][tedPlayersLength]['points']) * 100;
+    //var pointsValue = parseFloat(['ted_players'][tedPlayersLength]['points']) * 100;
     //console.log('Effort value', effortValue);
 
     /*var skillValue = parseFloat(msg['ted_players'][tedPlayersLength]['Skill']) * 1000;
@@ -838,7 +838,7 @@ socket.on('ted response', function (msg) {
     if(pos_element % 4 == 0) {
 
       tedGraphs.effortData.push((effortValue !== undefined && !isNaN(effortValue)) ? ((effortValue>100)?(100):(effortValue)) : (0))
-      tedGraphs.scoreData.push((pointsValue !== undefined && !isNaN(pointsValue)) ? ((pointsValue>100)?(100):(pointsValue)) : (0))
+      //tedGraphs.scoreData.push((pointsValue !== undefined && !isNaN(pointsValue)) ? ((pointsValue>100)?(100):(pointsValue)) : (0))
       //tedGraphs.skillData.push((skillValue !== undefined && !isNaN(skillValue)) ? (skillValue) : (0))
       //tedGraphs.efficiencyData.push((efficiencyValue !== undefined && !isNaN(efficiencyValue)) ? (efficiencyValue) : (0))
       //tedGraphs.ciData.push((ciValue !== undefined && !isNaN(ciValue)) ? (ciValue) : (0));
@@ -875,7 +875,7 @@ socket.on('ted response', function (msg) {
     //console.log("Hmm: ", msg['ted_players'][pos_element]);
     effortHis.push(0)
     tedGraphs.effortData.push(0)
-    tedGraphs.scoreData.push(0)
+    //tedGraphs.scoreData.push(0)
     //tedGraphs.skillData.push(0)
     //tedGraphs.efficiencyData.push(0)
     //tedGraphs.ciData.push(0);
