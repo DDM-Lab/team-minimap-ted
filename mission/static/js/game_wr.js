@@ -74,13 +74,13 @@ let effortHis = [], skillHis = [], efficiencyHis = [];
 var tedGraphs = {
   showEffort: true,//one or the other
   showScore : false,
-  showSparkline: true,
-
+  showSparkline: false, //C1
+  showText : false, //C3
 
   showSkill: false,
   showEfficiency: false,
   showCI: false,
-  showGauge: false,
+  showGauge: true,//C2
 
   showThreshold: true,
 
@@ -684,18 +684,21 @@ function drawGraphs() {
     }*/
     tedGraphs.effortGraphRef = drawSparkline("liveChartEffort",tedGraphs.effortData, tedGraphs.effortGraphRef);
   }
+  if(tedGraphs.showEffort && tedGraphs.showGauge) {
+      tedGraphs.effortGaugeRef = drawGauge("gaugeChartEffort", tedGraphs.effortData, tedGraphs.effortGaugeRef)
+    }
   if(tedGraphs.showScore && tedGraphs.showSparkline){
     tedGraphs.scoreGraphRef = drawSparkline("liveChartScore",tedGraphs.scoreData, tedGraphs.scoreGraphRef);
   }
-  if(!tedGraphs.showSparkline && tedGraphs.showEffort){
-    let rescue = tedGraphs.effortData[tedGraphs.effortData.length -1];
-
-    document.getElementById('effort').innerHTML = 'Effort: ' + rescue.toString();
-  }
-  if(!tedGraphs.showSparkline && tedGraphs.showScore){
-    let rescue = tedGraphs.scoreData[tedGraphs.scoreData.length -1];
-    document.getElementById('goal').innerHTML = 'Points: ' + rescue.toString();
-  }
+  // if(!tedGraphs.showSparkline && tedGraphs.showEffort){
+  //   let rescue = tedGraphs.effortData[tedGraphs.effortData.length -1];
+  //
+  //   document.getElementById('effort').innerHTML = 'Effort: ' + rescue.toString();
+  // }
+  // if(!tedGraphs.showSparkline && tedGraphs.showScore){
+  //   let rescue = tedGraphs.scoreData[tedGraphs.scoreData.length -1];
+  //   document.getElementById('goal').innerHTML = 'Points: ' + rescue.toString();
+  // }
   /*
   if (tedGraphs.showSkill) {
     if(tedGraphs.showGauge) {
@@ -823,7 +826,7 @@ socket.on('ted response', function (msg) {
     Object.keys(msg['ted_players'][tedPlayersLength]).length > 0) {
 
     console.log(msg['ted_players'][tedPlayersLength]);
-    var effortValue = parseFloat(msg['ted_players'][tedPlayersLength]['Effort']) * 100;
+    var effortValue = parseFloat(msg['ted_players'][tedPlayersLength]['Effort']) * 100 *10;
 
     //var pointsValue = parseFloat(['ted_players'][tedPlayersLength]['points']) * 100;
     //console.log('Effort value', effortValue);
