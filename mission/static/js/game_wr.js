@@ -80,7 +80,7 @@ var tedGraphs = {
   showSkill: false,
   showEfficiency: false,
   showCI: false,
-  showGauge: true,//C2
+  showGauge: false,//C2
 
   showThreshold: true,
 
@@ -689,6 +689,11 @@ function drawGraphs() {
     }
   if(tedGraphs.showScore && tedGraphs.showSparkline){
     tedGraphs.scoreGraphRef = drawSparkline("liveChartScore",tedGraphs.scoreData, tedGraphs.scoreGraphRef);
+  }
+  if(tedGraphs.showEffort && (!tedGraphs.showGauge|| !tedGraphs.showSparkline) ){
+    let rescue = tedGraphs.effortData[tedGraphs.effortData.length -1];
+    console.log('Text based version ');
+    document.getElementById('effortTextValue').innerHTML = 'Effort: ' + rescue.toString();
   }
   // if(!tedGraphs.showSparkline && tedGraphs.showEffort){
   //   let rescue = tedGraphs.effortData[tedGraphs.effortData.length -1];
